@@ -1,0 +1,15 @@
+program P
+
+class Teste {
+  int x;
+  float y;
+  char c;
+}
+
+{
+  x = 10;
+  y = 3.14;
+  c = 'a';
+  print(x, 5);
+  print(y, 0x10);
+}
