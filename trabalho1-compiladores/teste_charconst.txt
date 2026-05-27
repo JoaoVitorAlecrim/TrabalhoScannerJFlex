@@ -1,5 +1,0 @@
-final int c = 10;
-final int d = 'a';
-print('Z');
-print('\n');
-print('\\');

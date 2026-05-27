@@ -1,0 +1,109 @@
+/* parser.cup - gramática mínima compatível com Scanner.flex */
+
+/* parser.cup - gramática compatível com Scanner.flex (mais completa) */
+
+terminal PROGRAM, FINAL, CLASS, VOID, IF, ELSE, WHILE, RETURN, READ, PRINT, NEW;
+terminal INT, FLOAT, CHAR;
+
+terminal EQEQ, NEQ, GE, LE, GT, LT, ASSIGN;
+terminal PLUS, MINUS, TIMES, DIV, MOD;
+
+terminal SEMI, COMMA, DOT, LPAREN, RPAREN, LBRACK, RBRACK, LBRACE, RBRACE;
+
+terminal FLOATNUM, HEXNUM, INTNUM, IDENT, CHARCONST;
+terminal ERROR;
+
+nonterminal program;
+nonterminal decls;
+nonterminal decl;
+nonterminal classDecl;
+nonterminal members;
+nonterminal member;
+nonterminal varDecl;
+nonterminal funcDecl;
+nonterminal block;
+nonterminal stmts;
+nonterminal stmt;
+nonterminal assign;
+nonterminal expr;
+nonterminal term;
+nonterminal factor;
+nonterminal type;
+nonterminal literal;
+
+precedence left PLUS, MINUS;
+precedence left TIMES, DIV;
+
+start with program;
+
+program ::= PROGRAM IDENT decls block ;
+
+decls ::= /* empty */
+	| decls decl
+	;
+
+decl ::= classDecl
+       | varDecl
+       | funcDecl
+       ;
+
+classDecl ::= CLASS IDENT LBRACE members RBRACE;
+
+members ::= /* empty */
+	 | members member
+	 ;
+
+member ::= varDecl
+	 | funcDecl
+	 ;
+
+varDecl ::= FINAL type IDENT ASSIGN literal SEMI
+	 | FINAL type IDENT SEMI
+	 | type IDENT SEMI
+	 ;
+
+funcDecl ::= VOID IDENT LPAREN RPAREN block
+	  | VOID IDENT LPAREN RPAREN SEMI
+	  ;
+
+type ::= INT | FLOAT | CHAR | IDENT;
+
+literal ::= INTNUM | FLOATNUM | HEXNUM | IDENT | CHARCONST;
+
+block ::= LBRACE stmts RBRACE;
+
+stmts ::= /* empty */
+	| stmts stmt
+	;
+
+stmt ::= varDecl
+       | assign SEMI
+       | PRINT LPAREN expr COMMA expr RPAREN SEMI
+       | READ LPAREN IDENT RPAREN SEMI
+       | IF LPAREN expr RPAREN block
+       | IF LPAREN expr RPAREN block ELSE block
+       | WHILE LPAREN expr RPAREN block
+       | SEMI
+       ;
+
+assign ::= IDENT ASSIGN expr;
+
+expr ::= expr PLUS term
+       | expr MINUS term
+       | term
+       ;
+
+term ::= term TIMES factor
+	| term DIV factor
+	| factor
+	;
+
+factor ::= LPAREN expr RPAREN
+	  | INTNUM
+	  | FLOATNUM
+	  | HEXNUM
+	  | IDENT
+	  | CHARCONST
+	  ;
+
+/* fim do arquivo */

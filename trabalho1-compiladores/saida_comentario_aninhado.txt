@@ -1,7 +1,0 @@
-[1,1] palavra reservada: program
-[1,9] identificador: P
-[4,1] simbolo: *
-[4,2] simbolo: /
-[5,1] palavra reservada: int
-[5,5] identificador: x
-[5,6] simbolo: ;

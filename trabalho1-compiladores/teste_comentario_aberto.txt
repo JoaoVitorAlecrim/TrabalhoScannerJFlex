@@ -1,3 +1,0 @@
-program P
-/* comentario que nunca fecha
-int x;

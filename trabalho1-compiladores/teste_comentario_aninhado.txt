@@ -1,5 +1,0 @@
-program P
-/* comentario externo
-   /* comentario interno */
-*/
-int x;
