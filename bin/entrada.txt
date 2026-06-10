@@ -1,0 +1,70 @@
+program Compiladores
+
+/* ================================================
+   DECLARACOES GLOBAIS
+   ================================================ */
+
+/* Declaracao de classe */
+class Ponto {
+  int x;
+  int y;
+}
+
+/* Variaveis globais */
+int contador;
+float media;
+
+/* Constante */
+final int MAX = 100;
+
+/* ================================================
+   METODOS DO PROGRAMA
+   ================================================ */
+{
+
+  /* Metodo auxiliar: troca dois inteiros */
+  void trocar(int a, int b) {
+    int aux;
+    aux = a;
+    a = b;
+    b = aux;
+  }
+
+  /* Metodo: calcula soma de dois inteiros */
+  int soma(int a, int b) {
+    return a + b;
+  }
+
+  /* Metodo principal */
+  void main() {
+    int x;
+    int resultado;
+
+    /* Atribuicoes simples */
+    x = 10;
+    resultado = 0;
+
+    /* Hexadecimal valido */
+    x = 0xFF;
+
+    /* Estrutura if-else */
+    if (x > 0) {
+      x = x + 1;
+    } else {
+      x = x - 1;
+    }
+
+    /* Estrutura while */
+    while (x < 100) {
+      x = x + 1;
+    }
+
+    /* Entrada e saida */
+    read(x);
+    print(x, 5);
+
+    /* Retorno */
+    return;
+  }
+
+}

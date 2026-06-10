@@ -1,0 +1,5 @@
+[8,9] erro lexico: hexadecimal invalido -> 0XFF
+[9,9] erro lexico: numero real invalido -> 5.
+[10,9] erro lexico: numero real invalido -> .5
+[11,9] erro lexico: hexadecimal incompleto -> 0x
+Analise sintatica concluida com sucesso.
