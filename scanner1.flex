@@ -1,7 +1,6 @@
 /* Scanner1.flex */
 %%
 
-%standalone
 %line
 %column
 %class Scanner

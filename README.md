@@ -17,15 +17,18 @@ Os arquivos `jflex-full-1.9.1.jar`, `java-cup-11b.jar` e `java-cup-11b-runtime.j
 
 | Arquivo | Descrição |
 |---|---|
-| `Scanner.flex` | Especificação léxica (JFlex) |
+| `Scanner.flex` | Especificação léxica do analisador Java-- (JFlex) |
 | `Scanner.java` | Scanner gerado pelo JFlex |
-| `Parser.cup` | Especificação sintática (JCup) |
+| `Parser.cup` | Especificação sintática do analisador Java-- (JCup) |
 | `parser.java`, `sym.java` | Parser gerado pelo JCup |
-| `Main.java` | Ponto de entrada principal |
+| `Main.java` | Ponto de entrada principal (Scanner + Parser Java--) |
 | `MainExercicio.java` | Ponto de entrada para os exercícios de expressões |
-| `exercicio.flex` / `exercicio.cup` | Exercícios de expressões aritméticas (Aulas 14–15) |
-| `ex4.cup` | Exercício com verificação de divisão por zero |
-| `exercicio17.flex` / `exercicio17.cup` | Exercício com designator (Aula 17) |
+| `exSlide14.flex` | Scanner base dos exercícios de expressões aritméticas (Aulas 14–15) |
+| `exSlide15.cup` | Exercícios 1, 2 e 3 da Aula 15 (Tradução Dirigida por Sintaxe) |
+| `ex4Slide15.cup` | Exercício 4 da Aula 15 (verificação de divisão por zero) |
+| `ex1Slide16.flex` | Exercício 1 da Aula 16 (impressão de INTEIRO no scanner) |
+| `exSlide17.flex` | Scanner da Aula 17 (com IDENT, DOT, colchetes) |
+| `exSlide17.cup` | Gramática da Aula 17 (com produção designator) |
 | `entrada.txt` | Programa Java-- de teste (sem erros) |
 | `entrada_erros.txt` | Programa Java-- de teste (com erros léxicos) |
 | `saida.txt` | Saída esperada para `entrada.txt` |
@@ -106,6 +109,28 @@ Digitando expressões interativamente (Ctrl+Z para encerrar no Windows):
 ```powershell
 java -cp ".;java-cup-11b-runtime.jar" MainExercicio
 ```
+
+---
+
+### 7. Exercício 1 da Aula 16 — impressão no scanner
+
+O arquivo `ex1Slide16.flex` demonstra que ações no `.lex` executam **antes** das ações semânticas do `.cup`. Para testar, regenere o scanner com esse arquivo (substitui o `Scanner.java` temporariamente):
+
+```powershell
+.\jflex.bat ex1Slide16.flex
+```
+
+Compile e rode com qualquer expressão como `4 + 2;` — a saída mostrará `scanner: 4.0` e `scanner: 2.0` **antes** de `Resultado = 6.0`.
+
+---
+
+## Exercício 2 da Aula 16 — ordem de execução dos blocos
+
+Dada a parse tree da expressão `3 + 5;`, a ordem de execução dos blocos em um parser bottom-up é:
+
+**d → b → c → e → f → a**
+
+Raciocínio: o parser reduz das folhas para a raiz. Primeiro o INTEIRO esquerdo (d), depois a ação intermediária pós-`expr` esquerdo (b), depois a ação pós-`MAIS` (c), depois o INTEIRO direito (e), depois a redução da soma (f), e por último a redução de `expr_ptv` (a).
 
 ---
 
