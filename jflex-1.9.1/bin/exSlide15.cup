@@ -1,4 +1,4 @@
-/* exercicio.cup - Gramatica com Traducao Dirigida por Sintaxe (Aula 15)
+/* exSlide15.cup - Exercicios 1, 2 e 3 da Aula 15 (Traducao Dirigida por Sintaxe) */
  *
  * Ex1: + e - com calculo de resultado   (slides 75-76)
  * Ex2: adiciona * / % com precedencia   (slides 76-77)

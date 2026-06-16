@@ -1,11 +1,16 @@
-/* exercicio17.flex - Scanner para Aula 17 (IDENT + Designator)
+/* ex1Slide16.flex - Exercicio 1 da Aula 16
  *
- * Adiciona ao exercicio.flex (Aulas 15/16):
- *   - IDENT: identificador  letra(letra|digito)*
- *   - DOT:   ponto "."  (acesso a atributo)
- *   - COL_ABRE / COL_FECHA: colchetes "[" "]"  (acesso a vetor)
+ * Igual ao exSlide14.flex, mas com impressao do valor do INTEIRO
+ * diretamente no scanner (dentro da regra .lex), antes de retornar
+ * o token ao parser.
  *
- * INTEIRO retorna Double; IDENT retorna String.
+ * Objetivo: mostrar que acoes no .lex executam ANTES das acoes
+ * semanticas do .cup. Como o parsing e bottom-up, o scanner imprime
+ * "scanner: X.0" antes de o parser imprimir "Resultado = X".
+ *
+ * Exemplo de saida para entrada "4;":
+ *   scanner: 4.0
+ *   Resultado = 4.0
  */
 
 import java_cup.runtime.Symbol;
@@ -26,23 +31,17 @@ import java_cup.runtime.Symbol;
     }
 %}
 
-letra     = [a-zA-Z_]
 digito    = [0-9]
-ident     = {letra}({letra}|{digito})*
 inteiro   = {digito}+
 fimLinha  = \r|\n|\r\n
 espaco    = {fimLinha} | [ \t\f]
 
 %%
 
-/* --- Identificadores (devem vir antes dos inteiros) --- */
-{ident} {
-    return new Symbol(sym.IDENT, yytext());
-}
-
-/* --- Numeros (retornam Double para o parser) --- */
+/* --- Numeros: imprime no scanner E retorna token ao parser --- */
 {inteiro} {
     double val = Double.parseDouble(yytext());
+    System.out.println("scanner: " + val);
     return new Symbol(sym.INTEIRO, Double.valueOf(val));
 }
 
@@ -54,15 +53,8 @@ espaco    = {fimLinha} | [ \t\f]
 "%"  { return new Symbol(sym.MOD);     }
 
 /* --- Parenteses --- */
-"("  { return new Symbol(sym.ABRE);    }
-")"  { return new Symbol(sym.FECHA);   }
-
-/* --- Colchetes (acesso a vetor) --- */
-"["  { return new Symbol(sym.COL_ABRE);  }
-"]"  { return new Symbol(sym.COL_FECHA); }
-
-/* --- Ponto (acesso a atributo de objeto) --- */
-"."  { return new Symbol(sym.DOT); }
+"("  { return new Symbol(sym.ABRE);   }
+")"  { return new Symbol(sym.FECHA);  }
 
 /* --- Ponto e virgula --- */
 ";"  { return new Symbol(sym.PTVIRG); }

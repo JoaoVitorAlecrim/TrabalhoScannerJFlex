@@ -1,4 +1,4 @@
-/* ex4.cup - Exercicio 4 (Aula 15, slide 79)
+/* ex4Slide15.cup - Exercicio 4 da Aula 15 (verificacao de denominador zero) */
  *
  * Igual ao exercicio.cup (Ex3) mas com verificacao de denominador zero
  * na divisao e no modulo.

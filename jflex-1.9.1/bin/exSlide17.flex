@@ -1,11 +1,11 @@
-/* exercicio.flex - Scanner para exercicios da Aula 15 (com valores)
+/* exSlide17.flex - Scanner da Aula 17 (com IDENT, DOT, COL_ABRE, COL_FECHA) */
  *
- * Ex1: +, -
- * Ex2: adiciona *, /, %
- * Ex3: adiciona ( ) para alterar precedencia
- * Ex4: mesmo scanner (verificacao de denominador fica no .cup)
+ * Adiciona ao exercicio.flex (Aulas 15/16):
+ *   - IDENT: identificador  letra(letra|digito)*
+ *   - DOT:   ponto "."  (acesso a atributo)
+ *   - COL_ABRE / COL_FECHA: colchetes "[" "]"  (acesso a vetor)
  *
- * INTEIRO retorna Double (necessario para Traducao Dirigida por Sintaxe)
+ * INTEIRO retorna Double; IDENT retorna String.
  */
 
 import java_cup.runtime.Symbol;
@@ -20,19 +20,25 @@ import java_cup.runtime.Symbol;
 %public
 
 %{
-    /* Construtor para leitura de System.in */
     public Scanner(java.io.InputStream in) {
         this(new java.io.InputStreamReader(in,
              java.nio.charset.Charset.forName("UTF-8")));
     }
 %}
 
+letra     = [a-zA-Z_]
 digito    = [0-9]
+ident     = {letra}({letra}|{digito})*
 inteiro   = {digito}+
 fimLinha  = \r|\n|\r\n
 espaco    = {fimLinha} | [ \t\f]
 
 %%
+
+/* --- Identificadores (devem vir antes dos inteiros) --- */
+{ident} {
+    return new Symbol(sym.IDENT, yytext());
+}
 
 /* --- Numeros (retornam Double para o parser) --- */
 {inteiro} {
@@ -40,16 +46,23 @@ espaco    = {fimLinha} | [ \t\f]
     return new Symbol(sym.INTEIRO, Double.valueOf(val));
 }
 
-/* --- Operadores aritmeticos (Ex1, Ex2) --- */
+/* --- Operadores aritmeticos --- */
 "+"  { return new Symbol(sym.MAIS);    }
 "-"  { return new Symbol(sym.MENOS);   }
 "*"  { return new Symbol(sym.VEZES);   }
 "/"  { return new Symbol(sym.DIVISAO); }
 "%"  { return new Symbol(sym.MOD);     }
 
-/* --- Parenteses (Ex3) --- */
-"("  { return new Symbol(sym.ABRE);   }
-")"  { return new Symbol(sym.FECHA);  }
+/* --- Parenteses --- */
+"("  { return new Symbol(sym.ABRE);    }
+")"  { return new Symbol(sym.FECHA);   }
+
+/* --- Colchetes (acesso a vetor) --- */
+"["  { return new Symbol(sym.COL_ABRE);  }
+"]"  { return new Symbol(sym.COL_FECHA); }
+
+/* --- Ponto (acesso a atributo de objeto) --- */
+"."  { return new Symbol(sym.DOT); }
 
 /* --- Ponto e virgula --- */
 ";"  { return new Symbol(sym.PTVIRG); }

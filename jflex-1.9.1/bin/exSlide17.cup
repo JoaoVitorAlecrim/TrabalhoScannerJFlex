@@ -1,4 +1,4 @@
-/* exercicio17.cup - Gramatica com IDENT e Designator (Aula 17)
+/* exSlide17.cup - Gramatica da Aula 17 (com IDENT e producao designator) */
  *
  * Estende exercicio.cup (Aula 15, Ex3) com:
  *   - Terminal String IDENT
