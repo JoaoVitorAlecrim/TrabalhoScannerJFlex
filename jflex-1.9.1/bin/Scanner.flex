@@ -71,15 +71,19 @@ COMMENT_TEXT = [^*/\r\n]+
 /* ---------- Casos invalidos (erro lexico) ---------- */
 "0X"{HEXDIG}+ {
     System.out.println("[" + (yyline+1) + "," + (yycolumn+1) + "] erro lexico: hexadecimal invalido -> " + yytext());
+    return new Symbol(sym.NUM_INT, yyline, yycolumn, 0);
 }
 "0x" {
     System.out.println("[" + (yyline+1) + "," + (yycolumn+1) + "] erro lexico: hexadecimal incompleto -> " + yytext());
+    return new Symbol(sym.NUM_INT, yyline, yycolumn, 0);
 }
 {DIGITO}+"." {
     System.out.println("[" + (yyline+1) + "," + (yycolumn+1) + "] erro lexico: numero real invalido -> " + yytext());
+    return new Symbol(sym.NUM_INT, yyline, yycolumn, 0);
 }
 "."{DIGITO}+ {
     System.out.println("[" + (yyline+1) + "," + (yycolumn+1) + "] erro lexico: numero real invalido -> " + yytext());
+    return new Symbol(sym.NUM_INT, yyline, yycolumn, 0);
 }
 
 /* ---------- Numeros ---------- */

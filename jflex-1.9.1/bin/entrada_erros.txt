@@ -1,9 +1,9 @@
 program Teste
 
 {
-  void main() {
+  void main()
     int x;
-
+  {
     /* Casos com erro lexico */
     x = 0XFF;   /* ERRO: hex deve ser 0x (minusculo) */
     x = 5.;     /* ERRO: real invalido (sem parte decimal) */
