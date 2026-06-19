@@ -1,0 +1,196 @@
+/* Parser.cup - Roteiro 5: Parser Code / Variavel Global
+ *
+ * Novidades em relacao ao Roteiro 4:
+ *
+ *  1) parser code {: :}
+ *     Insere atributos e metodos Java diretamente na classe parser gerada.
+ *     Isso cria variaveis "globais" acessiveis de qualquer regra de producao
+ *     via parser.<atributo> ou parser.<metodo>().
+ *
+ *     Atributos inseridos:
+ *       - int contador       : conta quantos statements foram executados
+ *       - double somatorio   : acumula a soma dos valores computados
+ *       - boolean denomEhVar : flag para Atividade 1 (denominador eh variavel?)
+ *
+ *     Metodo inserido:
+ *       - imprimeRelatorio() : impresso do Main apos p.parse()
+ *
+ *  2) Atividade 1 - Divisao por zero so para designators
+ *     Se o denominador for uma variavel (designator), verificar se vale zero.
+ *     Se for zero, pedir novo valor ao usuario (loop do-while).
+ *     Se o denominador for um literal NUMBER, nenhuma verificacao e feita
+ *     (assume-se que o programador nao escreve 1/0 intencionalmente).
+ *
+ *     Mecanismo: flag parser.denomEhVar setado em factor:
+ *       - factor ::= NUMBER        -> denomEhVar = false
+ *       - factor ::= ABRE_PARENT   -> denomEhVar = false
+ *       - factor ::= designator    -> denomEhVar = true
+ *     Como term e right-recursive, o ULTIMO factor reduzido antes da acao
+ *     DIV e sempre o do denominador.
+ *
+ *  3) Atividade 2 - MOD apenas para inteiros
+ *     Verificar em term ::= factor MOD term se ambos os operandos sao
+ *     inteiros (i.e., nao tem parte fracionaria: v % 1.0 == 0.0).
+ *     Se nao forem, emite aviso semantico e retorna 0.0.
+ *     Habilitado pelo suporte a decimais adicionado no Scanner.flex.
+ *
+ *  4) statement e statement_aux agora retornam Double
+ *     Para que statement_aux possa acumular parser.somatorio.
+ */
+
+import java_cup.runtime.*;
+
+/* ===== Codigo inserido na classe parser ===== */
+parser code {:
+    int    contador   = 0;
+    double somatorio  = 0.0;
+    boolean denomEhVar = false;
+
+    public void imprimeRelatorio() {
+        System.out.println("Foram reconhecidas e computadas:");
+        System.out.println("- " + contador + " statements");
+        System.out.println("- cujo somatorio foi: " + somatorio);
+    }
+:}
+
+/* ===== Terminais ===== */
+terminal PTVIRG, PTO, VIRG, IGUAL;
+terminal MAIS, MENOS, MULT, DIV, MOD;
+terminal ABRE_PARENT, FECHA_PARENT;
+terminal ABRE_CHAVE, FECHA_CHAVE;
+terminal ABRE_COLCH, FECHA_COLCH;
+terminal OP_RELACIONAL;
+terminal KW_PROGRAM, KW_IF, KW_ELSE, KW_WHILE;
+terminal Double  NUMBER;
+terminal String  IDENT;
+
+/* ===== Nao terminais ===== */
+non terminal              program, varDecl_aux, varDecl, type;
+non terminal String       varDecl_op;
+non terminal Double       statement_aux, statement, expr_ptv;
+non terminal Double       expr, term, factor, designator;
+
+/* ===== Producoes ===== */
+
+/* Regra raiz */
+program ::= KW_PROGRAM IDENT varDecl_aux ABRE_CHAVE statement_aux FECHA_CHAVE
+          ;
+
+/* Lista de statements: left-recursive.
+ * Cada statement incrementa o contador e acumula o somatorio.
+ */
+statement_aux ::= statement_aux statement:s
+                  {:
+                      parser.contador++;
+                      parser.somatorio += s;
+                      RESULT = s;
+                  :}
+                | statement:s
+                  {:
+                      parser.contador++;
+                      parser.somatorio += s;
+                      RESULT = s;
+                  :}
+                ;
+
+/* Um statement retorna o valor computado para ser acumulado no somatorio */
+statement ::= expr_ptv:e
+              {: RESULT = e; :}
+            | designator IGUAL expr:e PTVIRG
+              {: System.out.println("Atribuicao reconhecida: " + e); RESULT = e; :}
+            ;
+
+/* Tipo da variavel */
+type ::= IDENT ABRE_COLCH FECHA_COLCH
+       | IDENT
+       ;
+
+/* Lista de declaracoes (zero ou mais) */
+varDecl_aux ::= varDecl varDecl_aux
+              | /* empty */
+              ;
+
+/* Declaracao: type nome1 [, nome2, ...] ; */
+varDecl ::= type IDENT:id varDecl_op:op PTVIRG
+            {:
+                System.out.println("Declaracao variavel:" + id + op);
+            :}
+          ;
+
+varDecl_op ::= varDecl_op:op VIRG IDENT:id
+               {: RESULT = op + ", " + id; :}
+             | /* empty */
+               {: RESULT = ""; :}
+             ;
+
+/* Expressao seguida de ponto-e-virgula: imprime e retorna o valor */
+expr_ptv ::= expr:e
+             {: System.out.println("= " + e); RESULT = e; :}
+             PTVIRG
+           ;
+
+/* Expressoes aritmeticas */
+expr ::= expr:e MAIS  term:t {: RESULT = e + t; :}
+       | expr:e MENOS term:t {: RESULT = e - t; :}
+       | MENOS term:t        {: RESULT = -t; :}
+       | term:t              {: RESULT = t; :}
+       ;
+
+/* ===== term com Atividades 1 e 2 ===== */
+term ::= factor:f MULT term:t
+         {: RESULT = f * t; :}
+
+       | factor:f DIV term:t
+         {: /* Atividade 1: divisao por zero so para designators */
+            if (parser.denomEhVar && t.doubleValue() == 0.0) {
+                java.util.Scanner leitor = new java.util.Scanner(System.in);
+                double denominador = 0.0;
+                do {
+                    System.out.println("O denominador nao pode ser zero");
+                    System.out.println("Informe o denominador:");
+                    denominador = leitor.nextDouble();
+                } while (denominador == 0.0);
+                RESULT = f / denominador;
+            } else {
+                RESULT = f / t;
+            }
+         :}
+
+       | factor:f MOD term:t
+         {: /* Atividade 2: MOD so para inteiros */
+            if (f % 1.0 != 0.0 || t % 1.0 != 0.0) {
+                System.out.println("Erro semantico: MOD so e definido para inteiros!");
+                System.out.println("  Operandos: " + f + " % " + t);
+                RESULT = 0.0;
+            } else {
+                RESULT = (double)((int)(double)f % (int)(double)t);
+            }
+         :}
+
+       | factor:f
+         {: RESULT = f; :}
+       ;
+
+/* factor seta o flag denomEhVar:
+ *   true  -> veio de designator (variavel)
+ *   false -> veio de NUMBER ou expressao parentesizada
+ *
+ * Como term e right-recursive, o ultimo factor reduzido antes da acao
+ * DIV disparar e sempre o fator do DENOMINADOR.
+ */
+factor ::= NUMBER:n
+           {: parser.denomEhVar = false; RESULT = n; :}
+         | ABRE_PARENT expr:e FECHA_PARENT
+           {: parser.denomEhVar = false; RESULT = e; :}
+         | designator:d
+           {: parser.denomEhVar = true; RESULT = d; :}
+         ;
+
+/* Retorna 1.0 como valor placeholder (valor real viria de uma tabela de simbolos) */
+designator ::= designator ABRE_COLCH expr FECHA_COLCH
+               {: RESULT = Double.valueOf(1.0); :}
+             | designator PTO IDENT
+               {: RESULT = Double.valueOf(1.0); :}
+             | IDENT
+               {: RESULT = Double.valueOf(1.0); :}
+             ;

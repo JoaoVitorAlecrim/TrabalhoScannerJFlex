@@ -1,0 +1,105 @@
+--- Roteiro 7: Atividade 1 - if ou else ---
+
+===================================================================
+CASO A: condicao verdadeira (3 < 30 = true) -> if executa, else nao
+===================================================================
+
+Entrada (entrada_ativ1a.txt):
+  program p
+  {
+    if(3 < 30){
+      1+2;
+      3-2*4;
+      (3-2)*4;
+      -1-2-3;
+      12/4/2;
+    }else{
+      1+4;
+    }
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada_ativ1a.txt
+
+Saida real:
+if(true){
+= 3.0
+= -5.0
+= 4.0
+= -6.0
+= 6.0
+}
+else{
+}
+Foram reconhecidas e computadas:
+- 6 statements
+- cujo somatorio foi: 2.0
+Arquivo sem erros de sintaxe!
+
+Trace:
+  condicao: 3 < 30 = true  -> deveExecutarBloco = true
+  if body (deveExecutarBloco=true):
+    1+2           = 3.0   -> imprime  (contador=1, somatorio=3.0)
+    3-2*4         = -5.0  -> imprime  (contador=2, somatorio=-2.0)
+    (3-2)*4       = 4.0   -> imprime  (contador=3, somatorio=2.0)
+    -1-2-3        = -6.0  -> imprime  (contador=4, somatorio=-4.0)
+    12/4/2        = 6.0   -> imprime  (contador=5, somatorio=2.0)
+  else_stmt: deveExecutarBloco = !true = false
+    1+4 nao impresso, nao contado
+  final: deveExecutarBloco = true
+  if_stmt contado na outer: valor=0.0 (contador=6, somatorio=2.0)
+
+===================================================================
+CASO B: condicao falsa (10 < 10 = false) -> else executa, if nao
+===================================================================
+
+Entrada (entrada_ativ1b.txt):
+  program p
+  {
+    if(10 < 10){
+      1+2;
+      3-2*4;
+      (3-2)*4;
+      -1-2-3;
+      12/4/2;
+    }else{
+      1+4;
+    }
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada_ativ1b.txt
+
+Saida real:
+if(false){
+}
+else{
+= 5.0
+}
+Foram reconhecidas e computadas:
+- 2 statements
+- cujo somatorio foi: 5.0
+Arquivo sem erros de sintaxe!
+
+Trace:
+  condicao: 10 < 10 = false  -> deveExecutarBloco = false
+  if body (deveExecutarBloco=false):
+    5 expressoes nao impressas, nao contadas
+  else_stmt: deveExecutarBloco = !false = true
+    1+4 = 5.0  -> imprime  (contador=1, somatorio=5.0)
+  final: deveExecutarBloco = true
+  if_stmt contado na outer: valor=0.0 (contador=2, somatorio=5.0)
+
+===================================================================
+Resumo do mecanismo:
+===================================================================
+  A "magica" e a variavel global deveExecutarBloco em parser code:
+    - condicao seta seu valor (true ou false)
+    - expr_ptv so imprime quando true
+    - statement_aux so conta quando true
+    - else_stmt INVERTE o valor ao entrar no bloco
+    - if_stmt RESETA para true ao terminar (para proximo statement)
+
+  Assim o compilador nao precisa de controle de fluxo real:
+  o parser simplesmente ignora (nao imprime, nao conta) os
+  statements do bloco errado.

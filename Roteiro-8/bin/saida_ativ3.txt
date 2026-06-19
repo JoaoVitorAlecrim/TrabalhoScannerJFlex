@@ -1,0 +1,70 @@
+--- Roteiro 8: Atividade 3 - estrutura do-while ---
+
+Entrada (entrada_ativ3.txt):
+  program p
+  {
+    do{
+      1 + 2;
+      10 - 3;
+    }while(5 < 3);
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada_ativ3.txt
+
+Saida real:
+do{
+= 3.0
+= 7.0
+}while(false)
+Foram reconhecidas e computadas:
+- 3 statements
+- cujo somatorio foi: 10.0
+Arquivo sem erros de sintaxe!
+
+---
+
+Gramatica implementada:
+
+  do_while_stmt ::= KW_DO ABRE_CHAVE
+                    {:
+                        parser.deveExecutarBloco = true;  <- corpo SEMPRE executa
+                        System.out.println("do{");
+                    :}
+                    statement_aux
+                    FECHA_CHAVE KW_WHILE ABRE_PARENT
+                    {: System.out.print("}while("); :}
+                    condicao
+                    FECHA_PARENT PTVIRG
+                    {:
+                        System.out.println(")");
+                        parser.deveExecutarBloco = true;  <- reset
+                        RESULT = 0.0;
+                    :}
+
+Diferenca fundamental vs while:
+  - while: condicao ANTES do corpo (body nao executa se false)
+  - do-while: corpo SEMPRE executa, condicao avaliada APOS o corpo
+
+  No do-while:
+    mid-rule forca deveExecutarBloco = true ANTES do corpo
+    -> corpo sempre executa independente de qualquer condicao externa
+    condicao e avaliada e impressa DEPOIS do corpo
+    -> }while(true) ou }while(false)
+
+Trace:
+  deveExecutarBloco = true (forcado pelo mid-rule)
+  1+2 = 3.0  -> imprime, c=1, s=3.0
+  10-3 = 7.0 -> imprime, c=2, s=7.0... wait c=2, s=10.0
+  condicao: 5 < 3 = false -> prints "false", deveExecutarBloco = false
+  final: deveExecutarBloco = true (reset)
+  do_while_stmt contado no outer (deveExec=true) -> c=3, s=10.0+0=10.0
+
+Contagem:
+  Interno: 1+2(3.0) + 10-3(7.0) = 2 statements (deveExec=true forcado)
+  Externo: do_while_stmt(0.0) = 1 statement
+  Total: 3 statements, somatorio = 3+7+0 = 10.0
+
+Nota: a condicao ser false (5 < 3) nao impede a execucao do corpo
+porque no do-while o corpo sempre roda ao menos uma vez.
+A condicao determina REPETICOES (que neste estagio nao sao simuladas).

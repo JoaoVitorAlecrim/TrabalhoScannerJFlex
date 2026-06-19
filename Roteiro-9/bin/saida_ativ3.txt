@@ -1,0 +1,61 @@
+--- Roteiro 9: Atividade 3 - Multiplos Tipos de Erro ---
+
+Entrada (entrada_ativ3.txt):
+  program p @
+  {
+    10 / 0;
+    3.5 % 2;
+    1 + 2;
+  }
+
+  Combina: erro lexico (@), erro semantico (div zero) e erro semantico (MOD).
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada_ativ3.txt
+
+Saida real:
+= 0.0
+= 0.0
+= 3.0
+Foram reconhecidas e computadas:
+- 3 statements
+- cujo somatorio foi: 3.0
+Arquivo sem erros de sintaxe!
+
+=== Lista de Erros ===
+  [linha 1, coluna 11] Caractere invalido: '@'
+  Divisao por zero: 10.0 / 0.0
+  MOD aplicado a numero nao inteiro: 3.5 % 2.0
+Total: 3 erro(s) encontrado(s)
+
+---
+
+Trace completo:
+
+  Analise Lexica:
+    token KW_PROGRAM ("program")
+    token IDENT ("p")
+    '@' -> ListaErro.adicionar("[linha 1, coluna 11] Caractere invalido: '@'")
+           (scanner nao retorna token, analise continua)
+    token ABRE_CHAVE
+    ...
+
+  Analise Sintatica + Semantica:
+    10 / 0  -> RESULT = 0.0  + ListaErro.adicionar("Divisao por zero: 10.0 / 0.0")
+    3.5 % 2 -> RESULT = 0.0  + ListaErro.adicionar("MOD aplicado a numero nao inteiro: ...")
+    1 + 2   -> RESULT = 3.0  (sem erros)
+
+  Ao final (Main.java):
+    ListaErro.imprimir() -> imprime todos os 3 erros juntos
+
+Vantagem da lista de erros:
+  O usuario recebe TODOS os problemas de uma vez.
+  Sem lista: primeiro erro parava (ou pedia input interativo).
+  Com lista: usuario vê 3 erros e pode corrigir tudo antes de recompilar.
+
+Ordem dos erros na lista:
+  1. Erro lexico (@) -> ocorre DURANTE a analise lexica (antes do parser processar)
+  2. Erro semantico (div/0) -> ocorre durante a reducao de "term"
+  3. Erro semantico (MOD) -> ocorre durante a reducao de "term"
+  A ordem reflete a ordem em que os erros foram DETECTADOS, nao necessariamente
+  a ordem das linhas no arquivo de entrada.

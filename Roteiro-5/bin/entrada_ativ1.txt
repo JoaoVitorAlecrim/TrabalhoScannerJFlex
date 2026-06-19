@@ -1,0 +1,7 @@
+program teste
+  int a, b;
+{
+  10 / 2;
+  6 / 3;
+  a / b;
+}

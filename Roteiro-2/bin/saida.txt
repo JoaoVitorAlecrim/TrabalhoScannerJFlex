@@ -1,0 +1,49 @@
+--- Atividade 1 (conceitual) ---
+
+Este tipo de tratamento pertence a fase de ANALISE SEMANTICA.
+
+- NAO e lexico: a analise lexica so reconhece tokens individuais (IDENT, NUMBER...).
+  Ela nao sabe o que "a + b" significa, apenas que sao tres tokens validos.
+
+- NAO e sintatico: a analise sintatica verifica ESTRUTURA. "vetor[-5]" e sintaticamente
+  correto — a sequencia de tokens forma uma expressao valida na gramatica.
+  O parser aceita sem erro de estrutura.
+
+- E SEMANTICO: verificar que um indice de vetor nao pode ser negativo e uma regra
+  sobre o SIGNIFICADO do programa. Da mesma forma, calcular o valor de uma variavel
+  exige conhecer o CONTEXTO (tabela de simbolos), o que pertence a semantica.
+
+---
+
+--- Atividades 2 e 3 (teste normal com todos os designators = 2) ---
+Comando: echo "2 2 2 2 2 2 2 2 2 2" | java -cp ".;java-cup-11b-runtime.jar" Main entrada.txt
+
+Entrada (entrada.txt):
+  a + b;
+  pessoa.idade + 1;
+  -pessoa.idade[1 + 2];
+  1 + vetor[a + pessoa.idade];
+  (3-2) * 4 + vetor[a.idade];
+  -1 - vetor[8] - 3;
+
+Saida (todos os designators com valor 2):
+Informe o valor do designator (a): Informe o valor do designator (b): = 4.0
+Informe o valor do designator (pessoa.idade): = 3.0
+Informe o valor do designator (pessoa.idade[3]): = -2.0
+Informe o valor do designator (a): Informe o valor do designator (pessoa.idade): Informe o valor do designator (vetor[4]): = 3.0
+Informe o valor do designator (a.idade): Informe o valor do designator (vetor[2]): = 6.0
+Informe o valor do designator (vetor[8]): = -6.0
+Arquivo sem erros de sintaxe!
+
+---
+
+Analise linha a linha:
+  a + b               -> 2 + 2              = 4.0
+  pessoa.idade + 1    -> 2 + 1              = 3.0
+  -pessoa.idade[3]    -> -2                 = -2.0  (indice 1+2=3, valor=2, unario minus)
+  1 + vetor[a+pid]    -> 1 + vetor[4]      = 3.0   (a=2, pessoa.idade=2, idx=4, vetor[4]=2)
+  (3-2)*4 + vetor[ai] -> 1*4 + vetor[2]   = 6.0   (a.idade=2, idx=2, vetor[2]=2)
+  -1 - vetor[8] - 3  -> -1 - 2 - 3        = -6.0  (8 e numero, vetor[8]=2)
+
+Observe: o designator carrega seu nome completo (ex: "pessoa.idade[3]"),
+o que permite informar ao usuario exatamente qual variavel ele esta preenchendo.

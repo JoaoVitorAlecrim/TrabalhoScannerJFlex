@@ -1,0 +1,64 @@
+--- Atividade 4: Leitura de entrada via arquivo de texto ---
+
+Arquivo: teste.txt
+Conteudo:
+  1 + 1;
+  -1 - 2 - 3;
+  1 + 2 * 3;
+  1 * 2 + 3;
+  12 / 4 / 2;
+  (1 + 2) * 3;
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main teste.txt
+
+Saida:
+1.0 1.0 + = 2.0
+1.0 u- 2.0 - 3.0 - = -6.0
+1.0 2.0 3.0 * + = 7.0
+1.0 2.0 * 3.0 + = 5.0
+12.0 4.0 2.0 / / = 6.0
+1.0 2.0 + 3.0 * = 9.0
+Arquivo sem erros de sintaxe!
+
+---
+
+Analise linha a linha:
+
+1) 1 + 1 = 2.0
+   1.0 (factor) 1.0 (factor) + (expr+term) = 2.0
+
+2) -1 - 2 - 3 = -6.0
+   1.0 (factor) u- (-1, unario) 2.0 (factor) - (-3) 3.0 (factor) - (-6)
+   Recursao a esquerda em expr: ((-1) - 2) - 3 = -6.0
+   Obs: expr tem recursao a ESQUERDA, entao a- e associativa a esquerda.
+
+3) 1 + 2 * 3 = 7.0
+   2*3 reducido primeiro (term, maior precedencia), depois 1+6.
+   Pos-fixa: 1 2 3 * + -> 7.0
+
+4) 1 * 2 + 3 = 5.0
+   1*2 reducido primeiro (term), resultado = 2.0, depois 2.0+3.0.
+   Pos-fixa: 1 2 * 3 + -> 5.0
+
+5) 12 / 4 / 2 = 6.0
+   Recursao a DIREITA em term: 12 / (4/2) = 12 / 2.0 = 6.0
+   Pos-fixa: 12 4 2 / / -> 6.0
+
+6) (1 + 2) * 3 = 9.0
+   Parenteses forcam a soma primeiro: (1+2)=3, depois 3*3=9.
+   Pos-fixa: 1 2 + 3 * -> 9.0
+
+---
+
+Diferenca vs leitura pelo teclado (Main.java original do roteiro):
+
+  ANTES (teclado):
+    Scanner scanner = new Scanner(System.in);
+
+  AGORA (arquivo):
+    Scanner scanner = new Scanner(new FileReader(args[0]));
+
+  O Main.java desta implementacao suporta AMBOS:
+    - Com argumento:  java ... Main teste.txt  -> le do arquivo
+    - Sem argumento:  java ... Main            -> le do teclado

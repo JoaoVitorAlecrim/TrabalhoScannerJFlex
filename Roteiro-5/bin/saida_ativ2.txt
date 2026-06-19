@@ -1,0 +1,67 @@
+--- Roteiro 5: Atividade 2 - MOD apenas para inteiros ---
+
+Entrada (entrada_ativ2.txt):
+  program teste
+    int x;
+  {
+    7 % 2;
+    9 % 3;
+    3.5 % 2;
+    x % 3;
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada_ativ2.txt
+
+Saida real:
+Declaracao variavel:x
+= 1.0
+= 0.0
+Erro semantico: MOD so e definido para inteiros!
+  Operandos: 3.5 % 2.0
+= 0.0
+= 1.0
+Foram reconhecidas e computadas:
+- 4 statements
+- cujo somatorio foi: 2.0
+Arquivo sem erros de sintaxe!
+
+---
+
+Conceito da Atividade 2:
+
+A operacao MOD (%) so e matematicamente definida para inteiros.
+O compilador deve verificar se ambos os operandos sao inteiros.
+
+Verificacao em term ::= factor:f MOD term:t:
+  - Testar se f e t nao possuem parte fracionaria: v % 1.0 == 0.0
+  - Se algum for nao-inteiro: emite erro semantico e retorna 0.0
+  - Se ambos forem inteiros: calcula (int)f % (int)t
+
+Codigo implementado:
+
+  term ::= factor:f MOD term:t
+           {:
+               if (f % 1.0 != 0.0 || t % 1.0 != 0.0) {
+                   System.out.println("Erro semantico: MOD so e definido para inteiros!");
+                   System.out.println("  Operandos: " + f + " % " + t);
+                   RESULT = 0.0;
+               } else {
+                   RESULT = (double)((int)(double)f % (int)(double)t);
+               }
+           :}
+
+Analise linha a linha:
+
+  7 % 2     -> 7.0 % 1.0==0  e  2.0 % 1.0==0  -> ambos inteiros  -> 7%2=1  -> "= 1.0"
+  9 % 3     -> ambos inteiros                  -> 9%3=0           -> "= 0.0"
+  3.5 % 2   -> 3.5 % 1.0 = 0.5 != 0           -> ERRO semantico  -> RESULT=0.0 -> "= 0.0"
+  x % 3     -> x=1.0 (placeholder), inteiro    -> 1%3=1           -> "= 1.0"
+
+  Total: 4 statements, somatorio = 1+0+0+1 = 2.0
+
+Suporte a decimais no Scanner (novidade do Roteiro 5):
+  Adicionado o macro:
+    decimal = {digito}+ "." {digito}+
+  Isso permite tokenizar "3.5" como NUMBER(3.5) em vez de
+  NUMBER(3) + PTO + NUMBER(5), habilitando o teste da Atividade 2.

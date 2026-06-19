@@ -1,0 +1,62 @@
+--- Roteiro 10: Exercicio 02 — while e do-while com notificacoes de erro ---
+
+Entrada (entrada_ativ2.txt):
+  program p
+  {
+    while(3 < 10){
+      1 + 2;
+    }
+    do{
+      5 - 1;
+    }while(5 < 3);
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada_ativ2.txt
+
+Saida real:
+while(true){
+= 3.0
+}
+do{
+= 4.0
+}while(false)
+Foram reconhecidas e computadas:
+- 4 statements
+- cujo somatorio foi: 7.0
+Arquivo sem erros!
+
+---
+
+Trace:
+  while(3 < 10 = true):
+    deveExecutarBloco = true
+    1+2 = 3.0 -> imprime, c=1, s=3.0
+    while_stmt(0.0) -> c=2, s=3.0
+
+  do{5-1}while(5<3=false):
+    deveExecutarBloco = true (forcado — corpo sempre executa)
+    5-1 = 4.0 -> imprime, c=3, s=7.0
+    condicao: 5<3=false -> imprime "false" (mas corpo ja executou)
+    do_while_stmt(0.0) -> c=4, s=7.0
+
+  Total: 4 statements, somatorio = 3+0+4+0 = 7.0  ✓
+
+Notificacoes de erro adicionadas (gramatica):
+
+  while malformado:
+    while_stmt ::= KW_WHILE ABRE_PARENT condicao FECHA_PARENT ABRE_CHAVE
+                   statement_aux FECHA_CHAVE { ... }
+                 | error
+                   {: parser.defineErro("WHILE incompleto"); RESULT = 0.0; :}
+
+  do-while malformado:
+    do_while_stmt ::= KW_DO ABRE_CHAVE statement_aux FECHA_CHAVE
+                      KW_WHILE ABRE_PARENT condicao FECHA_PARENT PTVIRG { ... }
+                    | error
+                      {: parser.defineErro("DO-WHILE incompleto"); RESULT = 0.0; :}
+
+  Funcionamento (mecanismo de dois passos identico ao IF):
+    1. Parser detecta erro -> syntax_error() -> defineErro(linha, coluna)
+    2. Acao da producao error -> defineErro("WHILE incompleto")
+    3. ListaErros.defineErro(String) preenche o texto do erro pendente

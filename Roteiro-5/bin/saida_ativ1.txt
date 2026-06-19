@@ -1,0 +1,67 @@
+--- Roteiro 5: Atividade 1 - Divisao por zero so para designators ---
+
+Entrada (entrada_ativ1.txt):
+  program teste
+    int a, b;
+  {
+    10 / 2;
+    6 / 3;
+    a / b;
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada_ativ1.txt
+
+Saida real:
+Declaracao variavel:a, b
+= 5.0
+= 2.0
+= 1.0
+Foram reconhecidas e computadas:
+- 3 statements
+- cujo somatorio foi: 8.0
+Arquivo sem erros de sintaxe!
+
+---
+
+Conceito da Atividade 1:
+
+Anteriormente (Roteiro 2), a verificacao de divisao por zero ocorria
+para QUALQUER denominador, inclusive literais numericos.
+
+Neste roteiro, a verificacao ocorre APENAS quando o denominador for
+uma variavel (designator). Se o denominador for um NUMBER literal,
+assume-se que o programador nunca escreve 1/0 intencionalmente.
+
+Casos:
+  10 / 2    -> denominador=NUMBER(2)    -> sem verificacao  -> 5.0
+  6 / 3     -> denominador=NUMBER(3)    -> sem verificacao  -> 2.0
+  a / b     -> denominador=designator(b)-> verificacao ativa -> b=1.0 != 0, ok
+
+Mecanismo - flag parser.denomEhVar no parser code:
+
+  flag false -> factor vem de NUMBER ou (expr)
+  flag true  -> factor vem de designator
+
+  factor ::= NUMBER:n            {: parser.denomEhVar = false; RESULT = n; :}
+           | ABRE_PARENT expr:e  {: parser.denomEhVar = false; RESULT = e; :}
+           | designator:d        {: parser.denomEhVar = true;  RESULT = d; :}
+           ;
+
+  Como term e right-recursive, o ULTIMO factor reduzido antes da
+  acao DIV disparar e sempre o do DENOMINADOR.
+
+  term ::= factor:f DIV term:t
+           {:
+               if (parser.denomEhVar && t.doubleValue() == 0.0) {
+                   // pede novo denominador ao usuario (loop do-while)
+               } else {
+                   RESULT = f / t;
+               }
+           :}
+
+Nota sobre o estado atual:
+  Como designators retornam 1.0 como valor placeholder, a verificacao
+  existe mas nunca dispara em testes atuais. Em um compilador completo
+  (com tabela de simbolos), variaveis teriam valores reais e o mecanismo
+  funcionaria para detectar divisao por zero em tempo de execucao.

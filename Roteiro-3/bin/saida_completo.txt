@@ -1,0 +1,44 @@
+--- Roteiro 3: Teste Completo ---
+
+Entrada (entrada_completo.txt):
+  program compiladores
+    Pessoa p;
+    int[] numeros, pares;
+    float media, soma, total;
+  {
+    1 + 2 * 3;
+    10 / p;
+    (3 - 1) * numeros;
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada_completo.txt
+
+Saida real:
+Declaracao variavel:p
+Declaracao variavel:numeros, pares
+Declaracao variavel:media, soma, total
+= 7.0
+= 10.0
+= 2.0
+Arquivo sem erros de sintaxe!
+
+---
+
+Analise passo a passo:
+
+Declaracoes:
+  Pessoa p;              -> type=IDENT("Pessoa"), nome="p", extras="" -> "Declaracao variavel:p"
+  int[] numeros, pares;  -> type=IDENT("int")+[], nome="numeros", extras=", pares"
+                         -> "Declaracao variavel:numeros, pares"
+  float media, soma, total; -> type=IDENT("float"), nome="media", extras=", soma, total"
+                         -> "Declaracao variavel:media, soma, total"
+
+Expressoes:
+  1 + 2 * 3;  -> term e direita-recursivo: 1 + (2 * 3) = 1 + 6 = 7.0
+  10 / p;     -> p eh designator (valor=1.0), 10 / 1.0 = 10.0
+  (3-1)*numeros; -> (3-1)=2.0, numeros=1.0 (designator), 2.0*1.0 = 2.0
+
+Observacao: tipos customizados (Pessoa) sao tratados como IDENT pelo scanner
+e pelo parser — a regra 'type ::= IDENT' aceita qualquer nome como tipo.
+

@@ -1,0 +1,77 @@
+--- Roteiro 4: Atribuicao ---
+
+Entrada (entrada.txt) — exemplo do PDF:
+  program p
+    int a;
+    int[] vet;
+    float b, x;
+  {
+    vet[4] = 10 - 8;
+    1 + 2;
+    4 + a;
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada.txt
+
+Saida real:
+Declaracao variavel:a
+Declaracao variavel:vet
+Declaracao variavel:b, x
+Atribuicao reconhecida: 2.0
+= 3.0
+= 5.0
+Arquivo sem erros de sintaxe!
+
+---
+
+Analise passo a passo:
+
+Declaracoes (antes de '{'):
+  int a;          -> "Declaracao variavel:a"
+  int[] vet;      -> "Declaracao variavel:vet"
+  float b, x;     -> "Declaracao variavel:b, x"
+
+Statements (dentro de '{ }'):
+  vet[4] = 10 - 8;
+    -> LHS: vet[4] e um designator (valor ignorado)
+    -> RHS: 10 - 8 = 2.0 (expr avaliada)
+    -> "Atribuicao reconhecida: 2.0"
+
+  1 + 2;
+    -> statement = expr_ptv
+    -> 1 + 2 = 3.0
+    -> "= 3.0"
+
+  4 + a;
+    -> statement = expr_ptv
+    -> a e um designator (valor placeholder = 1.0)
+    -> 4 + 1.0 = 5.0
+    -> "= 5.0"
+
+---
+
+Novas regras do parser (Roteiro 4):
+
+  statement ::= expr_ptv
+              | designator IGUAL expr PTVIRG  -> "Atribuicao reconhecida: e"
+
+  statement_aux ::= statement_aux statement   -> left-recursive
+                  | statement
+
+  program ::= KW_PROGRAM IDENT varDecl_aux '{' statement_aux '}'
+                                               (expr_list removido)
+
+Novo token do scanner:
+  "=" -> IGUAL  (apos {opRelacional} para que "==" seja OP_RELACIONAL)
+
+Terminais declarados para uso futuro (Roteiros 5+):
+  KW_IF, KW_ELSE, KW_WHILE
+
+Ausencia de conflito shift/reduce:
+  Apos "designator" na pilha, com lookahead "=":
+    IGUAL nao esta em FOLLOW(factor), portanto apenas SHIFT e valido.
+    O parser reconhece corretamente a atribuicao sem ambiguidade.
+
+JCup: 0 conflitos, 4 warnings (terminais declarados mas nao usados ainda).
+

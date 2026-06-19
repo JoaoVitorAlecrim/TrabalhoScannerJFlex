@@ -1,0 +1,9 @@
+program compiladores
+  Pessoa p;
+  int[] numeros, pares;
+  float media, soma, total;
+{
+  1 + 2 * 3;
+  10 / p;
+  (3 - 1) * numeros;
+}

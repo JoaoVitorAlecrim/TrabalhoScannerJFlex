@@ -1,0 +1,402 @@
+/* Parser.cup - Roteiro 10: Tratamento de Erros — Especial error
+ *
+ * Novidades em relacao ao Roteiro 9:
+ *
+ * 1. Arquitetura instancia (nao estatica):
+ *    Main cria ListaErros -> passa ao Scanner -> parser acessa via getScanner().
+ *    Cast obrigatorio: (Scanner) this.getScanner()
+ *    (sem esse cast, getScanner() retorna java_cup.runtime.Scanner sem defineErro())
+ *
+ * 2. syntax_error(Symbol s) sobrescrito (passo 1 do mecanismo de dois passos):
+ *    Registra a POSICAO do token problematico sem mensagem: defineErro(s.left, s.right).
+ *    Em seguida, a acao da producao preenche a mensagem: defineErro("IF incompleto").
+ *    O metodo defineErro(String) busca o primeiro Erro sem texto e o preenche.
+ *
+ * 3. Tres sobrecargas de defineErro() no parser code:
+ *    (int, int, String) -> erros semanticos diretos (div/0, MOD, indice negativo)
+ *    (int, int)         -> chamado pelo syntax_error() — so posicao
+ *    (String)           -> preenche texto pendente (passo 2 do mecanismo)
+ *
+ * 4. Especial error em regras-chave:
+ *    if_stmt   -> | error {: defineErro("IF incompleto"); :}
+ *    while_stmt -> | error {: defineErro("WHILE incompleto"); :}        (Exercicio 02)
+ *    for_stmt  -> | error {: defineErro("FOR incompleto"); :}
+ *    do_while  -> | error {: defineErro("DO-WHILE incompleto"); :}      (Exercicio 02)
+ *    condicao  -> | expr error expr {: defineErro("Op. relacional invalido"); :} (Exercicio 01)
+ *    designator -> indice negativo via defineErro(int,int,String)       (Exercicio 03)
+ *                  indice sintaticamente invalido via error FECHA_COLCH  (Exercicio 03)
+ *    expr_ptv  -> | error PTVIRG {: ... :}  (recuperacao em ponto-e-virgula)
+ *
+ * Exercicio 04 (resposta conceitual) — ver saida_ativ4.txt:
+ *    LEFT  (producao errada especifica): defineErro(cleft, cright, "IF sem parenteses")
+ *          -> 3 parametros, posicao exata do simbolo que faltou, mensagem especifica
+ *    RIGHT (error symbol generico):      defineErro("IF incompleto")
+ *          -> 1 parametro, posicao vem do syntax_error() automatico, mensagem generica
+ */
+
+import java_cup.runtime.*;
+
+/* ===== Codigo inserido na classe parser ===== */
+parser code {:
+    int    contador   = 0;
+    double somatorio  = 0.0;
+    boolean deveExecutarBloco = true;
+
+    public void imprimeRelatorio() {
+        System.out.println("Foram reconhecidas e computadas:");
+        System.out.println("- " + contador + " statements");
+        System.out.println("- cujo somatorio foi: " + somatorio);
+    }
+
+    /* Passo 1: chamado automaticamente pelo JCup ao detectar erro de sintaxe.
+     * Registra a posicao do token problematico SEM mensagem.
+     * O texto sera preenchido em seguida pelo defineErro(String) da acao. */
+    public void syntax_error(Symbol cur_token) {
+        this.defineErro(cur_token.left, cur_token.right);
+    }
+
+    /* Cast obrigatorio: getScanner() retorna java_cup.runtime.Scanner (interface do JCup).
+     * Precisamos do NOSSO Scanner (default package) para acessar defineErro(). */
+    public void defineErro(int linha, int coluna, String texto) {
+        Scanner sc = (Scanner) this.getScanner();
+        sc.defineErro(linha, coluna, texto);
+    }
+
+    public void defineErro(int linha, int coluna) {
+        Scanner sc = (Scanner) this.getScanner();
+        sc.defineErro(linha, coluna);
+    }
+
+    /* Passo 2: preenche o texto do primeiro erro registrado sem mensagem. */
+    public void defineErro(String texto) {
+        Scanner sc = (Scanner) this.getScanner();
+        sc.defineErro(texto);
+    }
+:}
+
+/* ===== Terminais ===== */
+terminal PTVIRG, PTO, VIRG, IGUAL;
+terminal MAIS, MENOS, MULT, DIV, MOD;
+terminal ABRE_PARENT, FECHA_PARENT;
+terminal ABRE_CHAVE, FECHA_CHAVE;
+terminal ABRE_COLCH, FECHA_COLCH;
+terminal KW_PROGRAM, KW_IF, KW_ELSE, KW_WHILE, KW_FOR, KW_DO;
+terminal KW_TRUE, KW_FALSE;
+terminal String  OP_RELACIONAL;
+terminal Double  NUMBER;
+terminal String  IDENT;
+
+/* ===== Nao terminais ===== */
+non terminal              program, varDecl_aux, varDecl, type;
+non terminal String       varDecl_op;
+non terminal Double       statement_aux, statement, expr_ptv;
+non terminal Double       expr, term, factor, designator;
+non terminal Double       if_stmt, while_stmt, for_stmt, do_while_stmt;
+non terminal              condicao, else_stmt;
+
+/* ===== Producoes ===== */
+
+program ::= KW_PROGRAM IDENT varDecl_aux ABRE_CHAVE statement_aux FECHA_CHAVE
+          ;
+
+statement_aux ::= statement_aux statement:s
+                  {:
+                      if (parser.deveExecutarBloco) {
+                          parser.contador++;
+                          parser.somatorio += s;
+                      }
+                      RESULT = s;
+                  :}
+                | statement:s
+                  {:
+                      if (parser.deveExecutarBloco) {
+                          parser.contador++;
+                          parser.somatorio += s;
+                      }
+                      RESULT = s;
+                  :}
+                ;
+
+statement ::= expr_ptv:e        {: RESULT = e; :}
+            | designator IGUAL expr:e PTVIRG
+              {:
+                  if (parser.deveExecutarBloco)
+                      System.out.println("Atribuicao reconhecida: " + e);
+                  RESULT = e;
+              :}
+            | if_stmt:i         {: RESULT = i; :}
+            | while_stmt:w      {: RESULT = w; :}
+            | for_stmt:f        {: RESULT = f; :}
+            | do_while_stmt:d   {: RESULT = d; :}
+            ;
+
+/* ===== if-else =====
+ *
+ * Exemplo principal do roteiro: error como alternativa catch-all.
+ *   syntax_error() dispara (step 1): registra posicao do token problematico.
+ *   Acao error (step 2): preenche a mensagem "IF incompleto" via defineErro(String).
+ *
+ * Qualquer if malformado (sem ABRE_PARENT, sem condicao, sem ABRE_CHAVE...)
+ * e capturado por esta unica alternativa — nao precisamos criar uma regra
+ * para cada possivel erro.
+ */
+if_stmt ::= KW_IF ABRE_PARENT
+            {: System.out.print("if("); :}
+            condicao
+            FECHA_PARENT ABRE_CHAVE
+            {: System.out.println("){"); :}
+            statement_aux
+            FECHA_CHAVE
+            {: System.out.println("}"); :}
+            else_stmt
+            {: parser.deveExecutarBloco = true; RESULT = Double.valueOf(0.0); :}
+          | error
+            {:
+                parser.defineErro("IF incompleto");
+                parser.deveExecutarBloco = true;
+                RESULT = Double.valueOf(0.0);
+            :}
+          ;
+
+else_stmt ::= KW_ELSE ABRE_CHAVE
+              {:
+                  parser.deveExecutarBloco = !parser.deveExecutarBloco;
+                  System.out.println("else{");
+              :}
+              statement_aux
+              FECHA_CHAVE
+              {: System.out.println("}"); :}
+            | /* vazio */
+            ;
+
+/* ===== while (Exercicio 02) =====
+ *
+ * Igual ao if_stmt: alternativa error captura qualquer while malformado.
+ */
+while_stmt ::= KW_WHILE ABRE_PARENT
+               {: System.out.print("while("); :}
+               condicao
+               FECHA_PARENT ABRE_CHAVE
+               {: System.out.println("){"); :}
+               statement_aux
+               FECHA_CHAVE
+               {:
+                   System.out.println("}");
+                   parser.deveExecutarBloco = true;
+                   RESULT = Double.valueOf(0.0);
+               :}
+             | error
+               {:
+                   parser.defineErro("WHILE incompleto");
+                   parser.deveExecutarBloco = true;
+                   RESULT = Double.valueOf(0.0);
+               :}
+             ;
+
+/* ===== for ===== */
+for_stmt ::= KW_FOR ABRE_PARENT
+             {: System.out.print("for("); :}
+             designator IGUAL expr PTVIRG
+             condicao
+             PTVIRG
+             designator IGUAL expr
+             FECHA_PARENT ABRE_CHAVE
+             {: System.out.println("){"); :}
+             statement_aux
+             FECHA_CHAVE
+             {:
+                 System.out.println("}");
+                 parser.deveExecutarBloco = true;
+                 RESULT = Double.valueOf(0.0);
+             :}
+           | error
+             {:
+                 parser.defineErro("FOR incompleto");
+                 parser.deveExecutarBloco = true;
+                 RESULT = Double.valueOf(0.0);
+             :}
+           ;
+
+/* ===== do-while (Exercicio 02) =====
+ *
+ * Semantica do-while: corpo sempre executa (deveExecutarBloco forcado true).
+ * Condicao avaliada apos o corpo.
+ */
+do_while_stmt ::= KW_DO ABRE_CHAVE
+                  {:
+                      parser.deveExecutarBloco = true;
+                      System.out.println("do{");
+                  :}
+                  statement_aux
+                  FECHA_CHAVE KW_WHILE ABRE_PARENT
+                  {: System.out.print("}while("); :}
+                  condicao
+                  FECHA_PARENT PTVIRG
+                  {:
+                      System.out.println(")");
+                      parser.deveExecutarBloco = true;
+                      RESULT = Double.valueOf(0.0);
+                  :}
+                | error
+                  {:
+                      parser.defineErro("DO-WHILE incompleto");
+                      parser.deveExecutarBloco = true;
+                      RESULT = Double.valueOf(0.0);
+                  :}
+                ;
+
+/* ===== Condicao =====
+ *
+ * Exercicio 01: alternativa "expr error expr" captura condicao sem operador
+ * relacional. Ex.: if(3 30){...} onde nao ha operador entre 3 e 30.
+ *
+ * Mecanismo de dois passos:
+ *   1. syntax_error() dispara ao detectar que o segundo token nao e OP_RELACIONAL
+ *      -> defineErro(s.left, s.right) registra posicao do token problematico
+ *   2. Acao da alternativa: defineErro("Operador relacional invalido ou ausente")
+ *      -> ListaErros.defineErro(String) preenche o texto do erro pendente
+ */
+condicao ::= expr:e1 OP_RELACIONAL:op expr:e2
+             {:
+                 boolean resultado = false;
+                 switch (op) {
+                     case "<":  resultado = (e1 <  e2); break;
+                     case "<=": resultado = (e1 <= e2); break;
+                     case ">":  resultado = (e1 >  e2); break;
+                     case ">=": resultado = (e1 >= e2); break;
+                     case "==": resultado = (e1.doubleValue() == e2.doubleValue()); break;
+                     case "!=": resultado = (e1.doubleValue() != e2.doubleValue()); break;
+                     default:   System.out.print("*op desconhecido");
+                 }
+                 parser.deveExecutarBloco = resultado;
+                 System.out.print(resultado);
+             :}
+           | KW_TRUE
+             {:
+                 parser.deveExecutarBloco = true;
+                 System.out.print("true");
+             :}
+           | KW_FALSE
+             {:
+                 parser.deveExecutarBloco = false;
+                 System.out.print("false");
+             :}
+           | expr error expr
+             {:
+                 parser.defineErro("Operador relacional invalido ou ausente");
+                 parser.deveExecutarBloco = false;
+                 System.out.print("error");
+             :}
+           ;
+
+/* ===== Declaracoes ===== */
+type ::= IDENT ABRE_COLCH FECHA_COLCH
+       | IDENT
+       ;
+
+varDecl_aux ::= varDecl varDecl_aux
+              | /* empty */
+              ;
+
+varDecl ::= type IDENT:id varDecl_op:op PTVIRG
+            {: System.out.println("Declaracao variavel:" + id + op); :}
+          ;
+
+varDecl_op ::= varDecl_op:op VIRG IDENT:id
+               {: RESULT = op + ", " + id; :}
+             | /* empty */
+               {: RESULT = ""; :}
+             ;
+
+/* ===== Expressoes =====
+ *
+ * expr_ptv: alternativa "error PTVIRG" usa PTVIRG como token de sincronizacao.
+ * O JCup descarta tokens ate encontrar ";" e entao se recupera.
+ * Isso e mais confivel que "error" sem token de sincronizacao.
+ */
+expr_ptv ::= expr:e
+             {:
+                 if (parser.deveExecutarBloco)
+                     System.out.println("= " + e);
+                 RESULT = e;
+             :}
+             PTVIRG
+           | error PTVIRG
+             {:
+                 parser.defineErro("Expressao invalida na linha");
+                 RESULT = Double.valueOf(0.0);
+             :}
+           ;
+
+expr ::= expr:e MAIS  term:t {: RESULT = e + t; :}
+       | expr:e MENOS term:t {: RESULT = e - t; :}
+       | MENOS term:t        {: RESULT = -t; :}
+       | term:t              {: RESULT = t; :}
+       ;
+
+/* term: erros semanticos via defineErro(int, int, String) direto (3 params).
+ * tleft/tright: localizacao do term (herdada do criaSimbolo() do scanner). */
+term ::= factor:f MULT term:t
+         {: RESULT = f * t; :}
+       | factor:f DIV term:t
+         {:
+             if (t.doubleValue() == 0.0) {
+                 parser.defineErro(tleft, tright,
+                     "Divisao por zero: " + f + " / " + t);
+                 RESULT = 0.0;
+             } else {
+                 RESULT = f / t;
+             }
+         :}
+       | factor:f MOD term:t
+         {:
+             if (f % 1.0 != 0.0 || t % 1.0 != 0.0) {
+                 parser.defineErro(fleft, fright,
+                     "MOD aplicado a nao-inteiro: " + f + " % " + t);
+                 RESULT = 0.0;
+             } else {
+                 RESULT = (double)((int)(double)f % (int)(double)t);
+             }
+         :}
+       | factor:f
+         {: RESULT = f; :}
+       ;
+
+factor ::= NUMBER:n
+           {: RESULT = n; :}
+         | ABRE_PARENT expr:e FECHA_PARENT
+           {: RESULT = e; :}
+         | designator:d
+           {: RESULT = d; :}
+         ;
+
+/* ===== Designator =====
+ *
+ * Exercicio 03: erros para indice de array invalido.
+ *
+ * Semantico (indice negativo):
+ *   Regra normal "designator ABRE_COLCH expr:idx FECHA_COLCH" avalia o indice.
+ *   Se idx < 0: defineErro(idxleft, idxright, mensagem) — 3 parametros diretos.
+ *   idxleft/idxright dao a posicao exata da expr do indice.
+ *
+ * Sintatico (indice malformado — nao e expr valida):
+ *   Regra "designator ABRE_COLCH error FECHA_COLCH" usa FECHA_COLCH como sync.
+ *   O JCup descarta tokens ate "]" e registra erro via dois passos.
+ */
+designator ::= designator ABRE_COLCH expr:idx FECHA_COLCH
+               {:
+                   if (idx < 0)
+                       parser.defineErro(idxleft, idxright,
+                           "Indice de array negativo: " + idx);
+                   RESULT = Double.valueOf(1.0);
+               :}
+             | designator ABRE_COLCH error FECHA_COLCH
+               {:
+                   parser.defineErro("Indice de array invalido (erro sintatico)");
+                   RESULT = Double.valueOf(1.0);
+               :}
+             | designator PTO IDENT
+               {: RESULT = Double.valueOf(1.0); :}
+             | IDENT
+               {: RESULT = Double.valueOf(1.0); :}
+             ;

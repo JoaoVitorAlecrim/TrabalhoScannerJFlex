@@ -1,0 +1,61 @@
+--- Roteiro 6: Atividade 1 - Todos os operadores relacionais ---
+
+Entrada (entrada_ativ1.txt):
+  program p
+    int x;
+  {
+    if(30 == 30) { 1 + 2; }
+    if(30 != 30) { 1 + 2; }
+    if(30 >= 90) { 1 + 2; }
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada_ativ1.txt
+
+Saida real:
+Declaracao variavel:x
+if(true){
+= 3.0
+}
+if(false){
+= 3.0
+}
+if(false){
+= 3.0
+}
+Foram reconhecidas e computadas:
+- 6 statements
+- cujo somatorio foi: 9.0
+Arquivo sem erros de sintaxe!
+
+---
+
+Analise de cada condicao:
+
+  if(30 == 30): 30.0 == 30.0 -> true   | imprime "if(true){"
+  if(30 != 30): 30.0 != 30.0 -> false  | imprime "if(false){"
+  if(30 >= 90): 30.0 >= 90.0 -> false  | imprime "if(false){"
+
+Observacao importante — bug classico com Double em Java:
+  Em Java, "==" entre objetos compara REFERENCIAS, nao valores.
+  Para Double: e1 == e2 compara ponteiros -> resultado errado!
+  Correcao aplicada no switch:
+    case "==": resultado = (e1.doubleValue() == e2.doubleValue()); break;
+    case "!=": resultado = (e1.doubleValue() != e2.doubleValue()); break;
+  Para <, <=, >, >= o auto-unboxing funciona corretamente.
+
+Implementacao do switch completo (condicao ::= expr:e1 OP_RELACIONAL:op expr:e2):
+
+  switch (op) {
+      case "<":  resultado = (e1 <  e2); break;
+      case "<=": resultado = (e1 <= e2); break;
+      case ">":  resultado = (e1 >  e2); break;
+      case ">=": resultado = (e1 >= e2); break;
+      case "==": resultado = (e1.doubleValue() == e2.doubleValue()); break;
+      case "!=": resultado = (e1.doubleValue() != e2.doubleValue()); break;
+      default:   System.out.print("*Simbolo desconhecido");
+  }
+  System.out.print(resultado);
+
+O corpo do if SEMPRE executa (sem controle de fluxo real neste estagio).
+O parser apenas reconhece a sintaxe e avalia a condicao para imprimir o resultado.

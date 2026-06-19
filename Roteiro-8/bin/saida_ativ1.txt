@@ -1,0 +1,35 @@
+--- Roteiro 8: Atividade 1 - while com deveExecutarBloco ---
+
+Entrada (entrada_ativ1.txt):
+  program p
+  {
+    while(5 < 3){
+      1 + 2;
+      10 - 3;
+    }
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada_ativ1.txt
+
+Saida real:
+while(false){
+}
+Foram reconhecidas e computadas:
+- 1 statements
+- cujo somatorio foi: 0.0
+Arquivo sem erros de sintaxe!
+
+---
+
+Mecanismo (Exercicio 01):
+  condicao: 5 < 3 = false -> parser.deveExecutarBloco = false
+  statement_aux interno:
+    1+2 = 3.0  -> nao imprime, nao conta (deveExec=false)
+    10-3 = 7.0 -> nao imprime, nao conta (deveExec=false)
+  Ao sair: parser.deveExecutarBloco = true (reset)
+  while_stmt contado na outer com valor 0.0 (deveExec=true) -> c=1, s=0.0
+
+Dica do PDF: usar a mesma variavel global deveExecutarBloco do parser code,
+ja presente desde o Roteiro 7 (if-else). Para o while, a logica e identica
+porem sem else (nao ha inversao, apenas reset ao sair).

@@ -1,0 +1,74 @@
+--- Roteiro 10: Exercicio 03 — Erros de Designator (indice negativo) ---
+
+Entrada (entrada_ativ3.txt):
+  program p
+    int[] v;
+  {
+    v[-1] = 5;   <- indice negativo: erro semantico
+    v[2]  = 3;   <- indice valido
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada_ativ3.txt
+
+Saida real:
+Declaracao variavel:v
+Atribuicao reconhecida: 5.0
+Atribuicao reconhecida: 3.0
+Foram reconhecidas e computadas:
+- 2 statements
+- cujo somatorio foi: 8.0
+
+Erros encontrados:
+linha:3, coluna:4, Indice de array negativo: -1.0
+
+  (linha/coluna podem variar com a posicao exata no arquivo)
+
+---
+
+Como funciona o erro de indice negativo (Exercicio 03):
+
+  Gramatica (designator):
+    designator ::= designator ABRE_COLCH expr:idx FECHA_COLCH
+                   {:
+                       if (idx < 0)
+                           parser.defineErro(idxleft, idxright,
+                               "Indice de array negativo: " + idx);
+                       RESULT = Double.valueOf(1.0);
+                   :}
+                 | designator ABRE_COLCH error FECHA_COLCH
+                   {:
+                       parser.defineErro("Indice de array invalido (erro sintatico)");
+                       RESULT = Double.valueOf(1.0);
+                   :}
+                 | designator PTO IDENT { RESULT = 1.0; }
+                 | IDENT               { RESULT = 1.0; }
+
+  Para v[-1]:
+    - designator:v  ABRE_COLCH  expr:-1.0  FECHA_COLCH
+    - idx = -1.0, idx < 0 e TRUE
+    - defineErro(idxleft, idxright, "Indice de array negativo: -1.0")
+      -> 3 parametros: posicao exata da expr do indice + mensagem completa
+    - RESULT = 1.0 (placeholder, sem tabela de simbolos)
+    - v[-1] como designator retorna 1.0
+
+  Para v[2]:
+    - designator:v  ABRE_COLCH  expr:2.0  FECHA_COLCH
+    - idx = 2.0, idx >= 0 -> sem erro
+    - RESULT = 1.0
+
+  Atribuicoes: designator IGUAL expr:e PTVIRG
+    - v[-1] = 5: designator(1.0) = 5.0 -> "Atribuicao reconhecida: 5.0"
+    - v[2]  = 3: designator(1.0) = 3.0 -> "Atribuicao reconhecida: 3.0"
+
+  Comparacao com Roteiro 2 (designator original):
+    ANTES (R2): indice negativo -> loop interativo pedindo novo indice ao usuario
+    AGORA (R10): indice negativo -> registrado na ListaErros, analise continua
+
+  Tipo de erro: semantico (a expressao e sintaticamente valida: -1 e uma expr valida)
+  Posicao: idxleft/idxright = posicao da expr:idx, obtida via criaSimbolo() no Scanner
+
+  Segundo caso (indice sintaticamente invalido):
+    designator ABRE_COLCH error FECHA_COLCH <- FECHA_COLCH e token de sincronizacao
+    Ex.: v[@] ou v[;] onde o indice nao e uma expr valida
+    O JCup descarta tokens ate encontrar "]" e registra o erro.

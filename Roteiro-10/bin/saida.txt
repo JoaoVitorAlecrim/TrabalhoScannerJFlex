@@ -1,0 +1,79 @@
+--- Roteiro 10: Tratamento de Erros — Especial error ---
+
+Entrada (entrada.txt) — programa valido, sem erros:
+  program p
+  {
+    1 + 2;
+    10 - 3;
+    6 / 2;
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada.txt
+
+Saida real:
+= 3.0
+= 7.0
+= 3.0
+Foram reconhecidas e computadas:
+- 3 statements
+- cujo somatorio foi: 13.0
+Arquivo sem erros!
+
+---
+
+Arquitetura do Roteiro 10 vs Roteiro 9:
+
+  Roteiro 9 (ListaErro estatica):
+    ListaErro.adicionar(...)  <- qualquer lugar do codigo pode chamar diretamente
+
+  Roteiro 10 (ListaErros instancia — arquitetura do PDF):
+    Main:
+      ListaErros listaErros = new ListaErros();
+      Scanner scanner = new Scanner(new FileReader(arquivo), listaErros);
+      parser p = new parser(scanner);
+
+    Cascata de chamadas (definida no PDF):
+      parser.defineErro(...)
+        -> Scanner sc = (Scanner) this.getScanner();  // cast obrigatorio!
+        -> sc.defineErro(...)
+           -> listaErros.defineErro(...)
+              -> new Erro(...) adicionado a lista
+
+  O cast (Scanner) this.getScanner() e obrigatorio porque:
+    getScanner() retorna java_cup.runtime.Scanner (interface do JCup).
+    Nosso Scanner esta no pacote default e nao extende essa interface diretamente
+    — precisamos do cast para acessar nosso defineErro().
+
+Mecanismo de dois passos com syntax_error():
+
+  PASSO 1 — chamado automaticamente pelo JCup ao detectar erro de sintaxe:
+    public void syntax_error(Symbol cur_token) {
+        this.defineErro(cur_token.left, cur_token.right);
+        // cur_token.left = yyline do token problematico (do criaSimbolo())
+        // cur_token.right = yycolumn do token problematico
+        // Cria Erro(linha, coluna, null) — sem mensagem ainda
+    }
+
+  PASSO 2 — acao da producao com error preenche a mensagem:
+    if_stmt ::= ...  |  error {: parser.defineErro("IF incompleto"); :}
+    // defineErro(String) busca o primeiro Erro com texto == null e preenche
+
+  Por que criaSimbolo() e indispensavel:
+    new Symbol(code, yyline, yycolumn, value)  <- Symbol.left = linha, .right = col
+    Sem criaSimbolo(), todos os tokens terian left=0, right=0.
+    Isso tornaria as localizacoes de erro inúteis (todas na linha 0, coluna 0).
+
+Tres sobrecargas de defineErro():
+
+  1. defineErro(int linha, int coluna, String texto)
+     Usado por: erros semanticos diretos (divisao por zero, MOD, indice negativo)
+     Registra posicao + mensagem de uma vez so.
+
+  2. defineErro(int linha, int coluna)
+     Usado por: syntax_error() automatico do JCup
+     Registra posicao SEM mensagem (texto = null).
+
+  3. defineErro(String texto)
+     Usado por: acoes das producoes com error
+     Preenche o texto do PRIMEIRO Erro que ainda esta com texto == null.

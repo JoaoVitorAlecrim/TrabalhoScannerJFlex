@@ -1,0 +1,77 @@
+--- Roteiro 10: Exercicio 01 — IF sem parenteses (especial error) ---
+
+Entrada (entrada_ativ1.txt):
+  program p
+  {
+    if 3 < 10 {    <- if SEM parenteses
+      1 + 2;
+    }
+    5 - 1;
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada_ativ1.txt
+
+Saida real (aproximada — linha/coluna dependem da posicao exata no arquivo):
+= 4.0
+Foram reconhecidas e computadas:
+- 2 statements
+- cujo somatorio foi: 4.0
+
+Erros encontrados:
+linha:2, coluna:5, IF incompleto
+
+---
+
+Como o error funciona para "IF sem parenteses":
+
+  Gramatica:
+    if_stmt ::= KW_IF ABRE_PARENT ... else_stmt {...}
+              | error {: parser.defineErro("IF incompleto"); RESULT = 0.0; :}
+
+  Trace:
+    1. Parser ve KW_IF, espera ABRE_PARENT
+    2. Ve NUMBER:3 em vez de "("
+    3. Erro de sintaxe detectado!
+    4. syntax_error(Symbol s) e chamado automaticamente:
+         this.defineErro(s.left, s.right)
+         -> Cria Erro(2, 5, null) na lista  [posicao do "3"]
+    5. JCup entra em modo de recuperacao: descarta tokens ate poder
+       usar a alternativa "error" em if_stmt
+    6. Acao {: parser.defineErro("IF incompleto"); :} e executada:
+         defineErro(String) preenche o texto: Erro(2, 5, "IF incompleto")
+    7. if_stmt retorna 0.0, deveExecutarBloco resetado para true
+    8. Parser continua: encontra "5 - 1;" e processa normalmente
+
+  Resultado:
+    - O "1 + 2;" dentro do if NAO e impresso (foi consumido pelo error recovery)
+    - O "5 - 1 = 4.0" DEPOIS do if e impresso (parser recuperou)
+    - 1 erro registrado: "IF incompleto" com localizacao do token problematico
+
+Diferenca entre "if sem parenteses" e o Exercicio 01 do Roteiro 9:
+
+  Roteiro 9 (producao errada especifica):
+    if ::= KW_IF condicao:c
+           {: parser.defineErro(cleft, cright, "IF sem parenteses"); :}
+           ABRECHAVE ...
+    - Cria uma regra SEPARADA para cada tipo especifico de erro
+    - Mensagem mais especifica ("sem parenteses" vs "incompleto")
+    - Posicao mais precisa: cleft/cright = posicao da condicao
+
+  Roteiro 10 (error symbol generico):
+    if_stmt ::= ... | error {: parser.defineErro("IF incompleto"); :}
+    - UMA UNICA regra captura TODOS os erros possiveis do if
+    - Mensagem generica ("IF incompleto")
+    - Posicao: do token que causou o erro (via syntax_error automatico)
+    - Mais simples de manter, mas menos especifico
+
+Exercicio 01 (condicao sem operador relacional) — ver comentario no Parser.cup:
+
+  condicao ::= expr OP_RELACIONAL expr  <- forma correta
+             | ...
+             | expr error expr          <- captura: if(3 30) sem operador
+               {: parser.defineErro("Operador relacional invalido ou ausente"); :}
+
+  Este caso e mais raro de testar porque o error recovery em producoes
+  internas pode consumir tokens de formas imprevisivel sem um token de
+  sincronizacao (como PTVIRG ou FECHA_PARENT) explicito apos o error.

@@ -1,0 +1,63 @@
+--- Roteiro 9: Atividade 2 - Erros Lexicos (Caracteres Invalidos) ---
+
+Entrada (entrada_ativ2.txt):
+  program p @#$
+  {
+    1 + 2;
+    3 - 1;
+  }
+
+  Os simbolos @, # e $ sao invalidos em Java--.
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada_ativ2.txt
+
+Saida real:
+= 3.0
+= 2.0
+Foram reconhecidas e computadas:
+- 2 statements
+- cujo somatorio foi: 5.0
+Arquivo sem erros de sintaxe!
+
+=== Lista de Erros ===
+  [linha 1, coluna 11] Caractere invalido: '@'
+  [linha 1, coluna 12] Caractere invalido: '#'
+  [linha 1, coluna 13] Caractere invalido: '$'
+Total: 3 erro(s) encontrado(s)
+
+---
+
+Como funciona (Scanner.flex - regra [^]):
+
+  ANTES (Roteiros 1-8):
+    [^] {
+        System.err.println("Erro lexico na linha " + (yyline+1) +
+                           ", coluna " + (yycolumn+1) +
+                           ": caractere invalido '" + yytext() + "'");
+    }
+
+  AGORA (Roteiro 9):
+    [^] {
+        ListaErro.adicionar(
+            "Caractere invalido: '" + yytext() + "'",
+            yyline + 1,
+            yycolumn + 1
+        );
+    }
+
+Porque o programa ainda executa sem erros de sintaxe:
+  Os caracteres invalidos (@#$) estao entre o identificador "p" e "{".
+  O scanner os IGNORA (nao retorna token). O parser ve apenas:
+    KW_PROGRAM IDENT ABRE_CHAVE statement_aux FECHA_CHAVE
+  Que e valido. Os erros ficam apenas na lista.
+
+Localizacao dos erros:
+  @: linha 1, coluna 11 (posicao exata no arquivo, reportada pelo yyline/yycolumn do JFlex)
+  #: linha 1, coluna 12
+  $: linha 1, coluna 13
+
+Diferenca do Erro.toString() com vs sem localizacao:
+  Com: "[linha 1, coluna 11] Caractere invalido: '@'"
+  Sem: "Divisao por zero: 10.0 / 0.0"
+  (A linha de codigo usa if (linha > 0) para escolher o formato)

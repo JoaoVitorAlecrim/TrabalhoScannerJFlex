@@ -1,0 +1,45 @@
+--- Atividade 3: Comparacao entre Recursividade a DIREITA e a ESQUERDA ---
+
+Entrada usada para comparacao: "12 / 4 / 2;"
+
+=== COM RECURSIVIDADE A DIREITA (Parser.cup) ===
+Comando: java -cp ".;java-cup-11b-runtime.jar" Main entrada_ativ3.txt
+
+Saida:
+12.0 4.0 2.0 / / = 6.0
+Arquivo sem erros de sintaxe!
+
+Explicacao:
+  Producao usada: term -> factor DIV term
+  Agrupamento:    12 / (4 / 2) = 12 / 2.0 = 6.0
+  Pos-fixa:       12 4 2 / /
+  Os tres numeros foram impressos ANTES dos operadores, porque na recursao
+  a direita o parser primeiro desceu toda a arvore ate as folhas antes
+  de reduzir qualquer operacao.
+
+=== COM RECURSIVIDADE A ESQUERDA (Parser_esquerda.cup) ===
+Comando: java -cp ".;java-cup-11b-runtime.jar" Main_esquerda entrada_ativ3.txt
+
+Saida:
+12.0 4.0 / 2.0 / = 1.5
+Arquivo sem erros de sintaxe!
+
+Explicacao:
+  Producao usada: term -> term DIV factor
+  Agrupamento:    (12 / 4) / 2 = 3.0 / 2 = 1.5
+  Pos-fixa:       12 4 / 2 /
+  Os numeros e operadores aparecem INTERCALADOS, porque na recursao a
+  esquerda cada operacao e resolvida assim que seus dois operandos estao
+  disponiveis, sem precisar descer toda a arvore primeiro.
+
+=== CONCLUSAO ===
+A direcao da recursividade define a ASSOCIATIVIDADE do operador:
+  - Recursao a DIREITA -> associatividade a direita  -> agrupa da direita pra esquerda
+  - Recursao a ESQUERDA -> associatividade a esquerda -> agrupa da esquerda pra direita
+
+Para divisao, a diferenca importa:
+  12 / (4 / 2) = 6.0   (direita)
+  (12 / 4) / 2 = 1.5   (esquerda)
+
+Na matematica convencional, divisao e associativa a esquerda,
+entao a versao com recursao a esquerda e a correta para este caso.

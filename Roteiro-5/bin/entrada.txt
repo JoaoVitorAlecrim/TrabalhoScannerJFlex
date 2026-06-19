@@ -1,0 +1,10 @@
+program p
+  int a, b;
+  float c;
+{
+  1 + 2;
+  a + b;
+  a = 5;
+  b = 10 - 3;
+  c = 2.5 + 1.5;
+}

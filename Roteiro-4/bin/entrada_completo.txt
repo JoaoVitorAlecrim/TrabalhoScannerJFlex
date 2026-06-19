@@ -1,0 +1,12 @@
+program teste
+  int a, b;
+  int[] vetor;
+  Pessoa obj;
+{
+  a = 5;
+  b = 10 - 3;
+  vetor[2] = a;
+  obj.campo = 42;
+  a + b;
+  produto.preco = (100 - 20) / 2;
+}

@@ -1,0 +1,53 @@
+--- Roteiro 3: Declaracao de Variavel ---
+
+Entrada (entrada.txt) — exemplo do PDF:
+  program p
+    int a;
+    int[] vet;
+    float b, x;
+  {
+    1 + 2;
+    4 + a;
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada.txt
+
+Saida real:
+Declaracao variavel:a
+Declaracao variavel:vet
+Declaracao variavel:b, x
+= 3.0
+= 5.0
+Arquivo sem erros de sintaxe!
+
+---
+
+Analise passo a passo:
+
+Fase de declaracoes (antes do '{'):
+  int a;       -> type=IDENT("int"),  nome="a",  varDecl_op="" -> "Declaracao variavel:a"
+  int[] vet;   -> type=IDENT("int")+[]+[], nome="vet", varDecl_op="" -> "Declaracao variavel:vet"
+  float b, x;  -> type=IDENT("float"), nome="b", varDecl_op=", x" -> "Declaracao variavel:b, x"
+
+Fase de expressoes (dentro do '{ }'):
+  1 + 2;  -> NUMBER(1) + NUMBER(2) = 3.0  -> "= 3.0"
+  4 + a;  -> NUMBER(4) + designator("a"=1.0) = 5.0 -> "= 5.0"
+           (designator retorna 1.0 como placeholder — sem tabela de simbolos)
+
+---
+
+Novos tokens do scanner (Roteiro 3):
+  "program" -> KW_PROGRAM  (declarado ANTES de {ident} para ter prioridade)
+  int, float etc. -> IDENT (sao identificadores neste roteiro, nao keywords)
+
+Novas regras do parser (Roteiro 3):
+  program     ::= KW_PROGRAM IDENT varDecl_aux '{' expr_list '}'
+  type        ::= IDENT '[' ']'  |  IDENT
+  varDecl_aux ::= varDecl varDecl_aux  |  /* vazio */
+  varDecl     ::= type IDENT varDecl_op ';'
+  varDecl_op  ::= varDecl_op ',' IDENT  |  /* vazio */   (recursao esquerda)
+
+varDecl_op retorna String com os nomes extras (ex: "" ou ", x" ou ", x, z").
+Ao final, varDecl imprime tudo junto: "Declaracao variavel:b, x".
+

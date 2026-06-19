@@ -1,0 +1,84 @@
+--- Roteiro 5: Parser Code / Variavel Global ---
+
+Entrada (entrada.txt):
+  program p
+    int a, b;
+    float c;
+  {
+    1 + 2;
+    a + b;
+    a = 5;
+    b = 10 - 3;
+    c = 2.5 + 1.5;
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada.txt
+
+Saida real:
+Declaracao variavel:a, b
+Declaracao variavel:c
+= 3.0
+= 2.0
+Atribuicao reconhecida: 5.0
+Atribuicao reconhecida: 7.0
+Atribuicao reconhecida: 4.0
+Foram reconhecidas e computadas:
+- 5 statements
+- cujo somatorio foi: 21.0
+Arquivo sem erros de sintaxe!
+
+---
+
+Conceito principal - parser code {: :}
+
+O JCup gera o arquivo parser.java como um "corpo fechado".
+O bloco parser code {: :} insere codigo Java diretamente na classe
+parser, criando atributos e metodos acessiveis em TODAS as regras.
+
+Declarado em Parser.cup:
+
+  parser code {:
+      int    contador  = 0;
+      double somatorio = 0.0;
+      boolean denomEhVar = false;
+
+      public void imprimeRelatorio() {
+          System.out.println("Foram reconhecidas e computadas:");
+          System.out.println("- " + contador + " statements");
+          System.out.println("- cujo somatorio foi: " + somatorio);
+      }
+  :}
+
+Uso nas regras de producao (via parser.<atributo>):
+
+  statement_aux ::= statement_aux statement:s
+                    {:
+                        parser.contador++;
+                        parser.somatorio += s;
+                        RESULT = s;
+                    :}
+                  | statement:s
+                    {:
+                        parser.contador++;
+                        parser.somatorio += s;
+                        RESULT = s;
+                    :}
+                  ;
+
+Chamada do Main (Melhoria 2 do roteiro):
+
+  p.parse();
+  p.imprimeRelatorio();   // <--- metodo da classe parser
+
+Analise linha a linha:
+
+  1 + 2;         -> expr_ptv: 1+2=3.0          -> "= 3.0"   somatorio += 3.0
+  a + b;         -> expr_ptv: 1.0+1.0=2.0      -> "= 2.0"   somatorio += 2.0
+  a = 5;         -> Atribuicao: RHS=5.0         -> "Atribuicao reconhecida: 5.0"
+  b = 10 - 3;   -> Atribuicao: RHS=7.0         -> "Atribuicao reconhecida: 7.0"
+  c = 2.5+1.5;  -> Atribuicao: RHS=4.0         -> "Atribuicao reconhecida: 4.0"
+
+  Total: 5 statements, somatorio = 3+2+5+7+4 = 21.0
+
+JCup: 0 conflitos, 4 warnings (terminais declarados mas nao usados ainda).

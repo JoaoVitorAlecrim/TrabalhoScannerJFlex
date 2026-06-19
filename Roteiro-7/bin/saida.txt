@@ -1,0 +1,86 @@
+--- Roteiro 7: Regra if-else ---
+
+Entrada (entrada.txt) — exemplo do PDF:
+  program p
+    int a;
+    int[] vet;
+    float b, x;
+  {
+    vet[4] = 10 - 8;
+    1 + 2;
+    4 + a;
+    if(8 < 9){
+      1+3;
+    }else{
+      2 + 2;
+    }
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada.txt
+
+Saida real:
+Declaracao variavel:a
+Declaracao variavel:vet
+Declaracao variavel:b, x
+Atribuicao reconhecida: 2.0
+= 3.0
+= 5.0
+if(true){
+= 4.0
+}
+else{
+}
+Foram reconhecidas e computadas:
+- 5 statements
+- cujo somatorio foi: 14.0
+Arquivo sem erros de sintaxe!
+
+---
+
+Estrutura da gramatica (if-else):
+
+  if_stmt ::= KW_IF ABRE_PARENT
+              {: System.out.print("if("); :}       <- mid-rule 1
+              condicao
+              FECHA_PARENT ABRE_CHAVE
+              {: System.out.println("){"); :}       <- mid-rule 2
+              statement_aux
+              FECHA_CHAVE
+              {: System.out.println("}"); :}
+              else_stmt
+              {: parser.deveExecutarBloco = true; RESULT = 0.0; :}
+
+  else_stmt ::= KW_ELSE ABRE_CHAVE
+                {:
+                    parser.deveExecutarBloco = !parser.deveExecutarBloco;
+                    System.out.println("else{");
+                :}
+                statement_aux
+                FECHA_CHAVE
+                {: System.out.println("}"); :}
+              | /* vazio */
+
+Mecanismo deveExecutarBloco:
+  - Inicializado como true (statements externos sempre executam)
+  - condicao seta: parser.deveExecutarBloco = resultado da comparacao
+  - expr_ptv: if (parser.deveExecutarBloco) System.out.println("= " + e)
+  - else_stmt: parser.deveExecutarBloco = !parser.deveExecutarBloco ao entrar
+  - Ao terminar if_stmt: parser.deveExecutarBloco = true (restaura contexto)
+
+Trace do exemplo (8 < 9 = true):
+  deveExecutarBloco = true  (inicio, nivel externo)
+  vet[4] = 10-8 = 2.0  ->  Atribuicao reconhecida: 2.0  (imprime)
+  1 + 2 = 3.0           ->  = 3.0  (imprime, devExec=true)
+  4 + a = 5.0           ->  = 5.0  (imprime, a=1.0 placeholder)
+  condicao: 8 < 9 = true -> deveExecutarBloco = true
+  1+3 = 4.0              ->  = 4.0  (imprime, devExec=true)
+  else_stmt:  deveExecutarBloco = !true = false
+  2+2 = 4.0              ->  nao imprime  (devExec=false)
+  final: deveExecutarBloco = true
+
+Contagem:
+  Nivel externo: vet_assign(2.0) + 1+2(3.0) + 4+a(5.0) + if_stmt(0.0) = 4 statements
+  Interno if:   1+3(4.0) = 1 statement
+  Interno else: 2+2 nao contado (deveExecutarBloco=false)
+  Total: 5 statements, somatorio = 2+3+5+0+4 = 14.0

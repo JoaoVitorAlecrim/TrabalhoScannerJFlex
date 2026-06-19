@@ -1,0 +1,66 @@
+--- Roteiro 6: Atividade 2 - Condicao aceita true/false direto ---
+
+Entrada (entrada_ativ2.txt):
+  program p
+  {
+    if(true) {
+      1 + 2;
+      (3 - 2) * 4;
+      -1 + 4 / 2;
+    }
+    if(false) {
+      1 + 2;
+      (3 - 2) * 4;
+      -1 + 4 / 2;
+    }
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada_ativ2.txt
+
+Saida real:
+if(true){
+= 3.0
+= 4.0
+= 1.0
+}
+if(false){
+= 3.0
+= 4.0
+= 1.0
+}
+Foram reconhecidas e computadas:
+- 8 statements
+- cujo somatorio foi: 16.0
+Arquivo sem erros de sintaxe!
+
+---
+
+Alteracao na gramatica (Atividade 2):
+
+  ANTES (Atividade 1):
+    condicao ::= expr OP_RELACIONAL expr
+
+  DEPOIS (Atividade 2):
+    condicao ::= expr OP_RELACIONAL expr   <- mantido
+               | KW_TRUE                   <- novo
+               | KW_FALSE                  <- novo
+
+  A alteracao e APENAS na gramatica .cup.
+  No scanner, "true" e "false" sao palavras reservadas:
+    "true"  { return new Symbol(sym.KW_TRUE);  }
+    "false" { return new Symbol(sym.KW_FALSE); }
+
+  Por isso, "true" e "false" nao podem ser usados como nomes de variaveis.
+
+Acoes semanticas:
+  | KW_TRUE  {: System.out.print("true");  :}
+  | KW_FALSE {: System.out.print("false"); :}
+
+Analise das expressoes:
+  1 + 2        = 3.0
+  (3 - 2) * 4  = 1 * 4 = 4.0
+  -1 + 4 / 2   = -1 + (4/2) = -1 + 2 = 1.0   (term e right-recursive)
+
+Contador: 3 inner + 1 if_stmt (true) + 3 inner + 1 if_stmt (false) = 8
+Somatorio: 3+4+1+0 + 3+4+1+0 = 16.0

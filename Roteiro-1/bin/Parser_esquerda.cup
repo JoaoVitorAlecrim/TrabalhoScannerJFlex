@@ -1,0 +1,80 @@
+/* Parser_esquerda.cup - Roteiro 1, Atividade 3
+ *
+ * Versao com RECURSIVIDADE A ESQUERDA em term.
+ * A unica diferenca em relacao ao Parser.cup esta nas producoes de term:
+ *   DIREITA:  term -> factor OP term   (agrupa da direita pra esquerda)
+ *   ESQUERDA: term -> term OP factor   (agrupa da esquerda pra direita)
+ *
+ * Isso muda o resultado de expressoes como 12 / 4 / 2:
+ *   Direita:  12 / (4 / 2) = 12 / 2.0 = 6.0
+ *   Esquerda: (12 / 4) / 2 = 3.0 / 2 = 1.5
+ */
+
+import java_cup.runtime.*;
+
+/* ===== Terminais (identicos ao Parser.cup) ===== */
+terminal PTVIRG, MAIS, MENOS, MULT, DIV, MOD, ABRE_PARENT, FECHA_PARENT;
+terminal Double NUMBER;
+
+/* ===== Nao terminais ===== */
+non terminal expr_list, expr_ptv;
+non terminal Double expr, term, factor;
+
+/* ===== Producoes ===== */
+
+expr_list ::= expr_list expr_ptv
+            | expr_ptv
+            ;
+
+expr_ptv ::= expr:e {: System.out.println("= " + e); :} PTVIRG
+           ;
+
+/* expr: recursao a esquerda (igual ao Parser.cup) */
+expr ::= expr:e MAIS term:t
+         {:
+             System.out.print("+ ");
+             RESULT = e + t;
+         :}
+       | expr:e MENOS term:t
+         {:
+             System.out.print("- ");
+             RESULT = e - t;
+         :}
+       | MENOS term:t
+         {:
+             System.out.print("u- ");
+             RESULT = -t;
+         :}
+       | term:t
+         {: RESULT = t; :}
+       ;
+
+/* term: RECURSAO A ESQUERDA — term aparece a ESQUERDA do operador */
+term ::= term:t MULT factor:f
+         {:
+             System.out.print("* ");
+             RESULT = t * f;
+         :}
+       | term:t DIV factor:f
+         {:
+             System.out.print("/ ");
+             RESULT = t / f;
+         :}
+       | term:t MOD factor:f
+         {:
+             System.out.print("% ");
+             RESULT = t % f;
+         :}
+       | factor:f
+         {: RESULT = f; :}
+       ;
+
+/* factor: identico ao Parser.cup */
+factor ::= NUMBER:n
+           {:
+               System.out.print(n + " ");
+               RESULT = n;
+           :}
+         | ABRE_PARENT expr:e FECHA_PARENT
+           {: RESULT = e; :}
+         ;

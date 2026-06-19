@@ -1,0 +1,90 @@
+--- Roteiro 10: Exercicio 04 — Diferenca entre producao errada e error symbol ---
+
+O roteiro apresenta dois lados de uma comparacao:
+
+=======================================================================
+LADO ESQUERDO — Producao errada especifica (Roteiro 9, secao 2.4)
+=======================================================================
+
+  if ::= KW_IF ABREPAR condicao FECHAPAR ABRECHAVE expr_list FECHACHAVE else
+       | KW_IF condicao:c
+         {: parser.defineErro(cleft, cright, "IF sem parenteses"); :}
+         ABRECHAVE expr_list FECHACHAVE else
+       ;
+
+  Chamada: parser.defineErro(cleft, cright, "IF sem parenteses")
+    - 3 parametros: (int linha, int coluna, String texto)
+    - linha/coluna: posicao EXATA do nao-terminal condicao:c
+      (cleft = inicio da condicao, cright = fim)
+    - texto: mensagem ESPECIFICA — sabemos exatamente qual e o erro
+      porque criamos uma regra exclusiva para esse caso
+
+  Vantagem:
+    - Mensagem especifica e precisa ("IF sem parenteses")
+    - Localizacao exata do simbolo que esta errado (cleft/cright)
+  Desvantagem:
+    - Para cada tipo de erro possivel (sem "{", sem "}", sem condicao...),
+      precisamos criar uma nova producao "errada"
+    - Isso se torna inviavel para linguagens complexas
+
+=======================================================================
+LADO DIREITO — Especial error (Roteiro 10, mecanismo de dois passos)
+=======================================================================
+
+  if ::= KW_IF ABREPAR condicao FECHAPAR ABRECHAVE expr_list FECHACHAVE else
+       | error {: parser.defineErro("IF incompleto"); :}
+       ;
+
+  Chamada: parser.defineErro("IF incompleto")
+    - 1 parametro: (String texto)
+    - A localizacao ja foi registrada ANTES, pelo syntax_error() automatico:
+        public void syntax_error(Symbol s) {
+            this.defineErro(s.left, s.right);
+            // cria Erro(linha, coluna, null) na lista
+        }
+    - defineErro(String) encontra esse Erro sem texto e preenche a mensagem
+
+  Vantagem:
+    - UMA UNICA regra captura QUALQUER erro no if (falta "(", ")", "{", "}"...)
+    - Facil de manter: adicionar um novo tipo de if nao requer nova regra de erro
+  Desvantagem:
+    - Mensagem generica ("IF incompleto") — nao sabemos qual parte esta errada
+    - Localizacao: posicao do token que causou o erro no JCup, nao necessariamente
+      o simbolo "que faltou"
+
+=======================================================================
+POR QUE OS PARAMETROS SAO DIFERENTES?
+=======================================================================
+
+  ESQUERDA: defineErro(cleft, cright, "IF sem parenteses")  — 3 parametros
+    -> Porque sabemos TUDO no momento da acao:
+       - cleft/cright: posicao da condicao (o nao-terminal foi reconhecido)
+       - texto: sabemos que e especificamente "sem parenteses" por design da regra
+    -> Uma chamada so registra o erro completo
+
+  DIREITA: defineErro("IF incompleto")  — 1 parametro
+    -> Porque a localizacao JA foi registrada pelo syntax_error() automatico
+    -> O syntax_error() nao tem acesso ao texto da mensagem (nao sabe qual
+       alternativa do error vai ser reduzida)
+    -> Por isso usa o mecanismo de dois passos:
+         passo 1: defineErro(linha, coluna) via syntax_error
+         passo 2: defineErro(texto) via acao da producao
+    -> Os dois passos juntos completam o Erro na ListaErros
+
+=======================================================================
+RESUMO
+=======================================================================
+
+  Criterio          | Producao errada (ESQUERDA) | error symbol (DIREITA)
+  ------------------|---------------------------|------------------------
+  Numero de params  | 3 (linha, col, texto)     | 1 (texto)
+  Mensagem          | Especifica                | Generica
+  Localizacao       | Exata (do simbolo faltoso)| Aproximada (token do erro)
+  Regras necessarias| Uma por tipo de erro      | Uma para tudo
+  Manutencao        | Trabalhosa                | Simples
+  Quando usar       | Erros criticos e comuns   | Catch-all geral
+
+  Recomendacao profissional: combinar os dois.
+  Criar producoes erradas para os erros mais frequentes e especificos,
+  e usar o error symbol como "default" para tudo mais.
+  Exatamente como o switch-case: cases especificos + default.

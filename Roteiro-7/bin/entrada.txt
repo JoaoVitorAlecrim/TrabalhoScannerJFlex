@@ -1,0 +1,15 @@
+program p
+  int a;
+  int[] vet;
+  float b, x;
+{
+  vet[4] = 10 - 8;
+  1 + 2;
+  4 + a;
+
+  if(8 < 9){
+    1+3;
+  }else{
+    2 + 2;
+  }
+}

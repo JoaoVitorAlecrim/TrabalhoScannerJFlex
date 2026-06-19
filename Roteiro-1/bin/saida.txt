@@ -1,0 +1,42 @@
+--- Atividade 1 e 2: java -cp ".;java-cup-11b-runtime.jar" Main entrada.txt ---
+
+Entrada:
+  2 + 4 * 7 + 3;
+  12 / 3 / 4;
+  4 + 8 / 3;
+  (4 + 8) / 3;
+  10 % 3;
+
+Saida:
+2.0 4.0 7.0 * + 3.0 + = 33.0
+12.0 3.0 4.0 / / = 16.0
+4.0 8.0 3.0 / + = 6.666666666666666
+4.0 8.0 + 3.0 / = 4.0
+10.0 3.0 % = 1.0
+Arquivo sem erros de sintaxe!
+
+---
+
+Analise das saidas (Atividade 1):
+
+a) 2 + 4 * 7 + 3 = 33.0
+   Saida: 2.0 4.0 7.0 * + 3.0 + = 33.0
+   Ordem de reducao: 4*7=28 primeiro (*, maior precedencia), depois 2+28=30, depois 30+3=33.
+   A leitura em pos-fixa (2 4 7 * + 3 +) confirma a arvore de derivacao correta.
+
+b) 12 / 3 / 4 = 16.0
+   Saida: 12.0 3.0 4.0 / / = 16.0
+   RECURSIVIDADE A DIREITA em term: agrupou como 12 / (3/4) = 12 / 0.75 = 16.0
+   Pos-fixa (12 3 4 / /) mostra que a divisao interna (3/4) foi resolvida antes.
+
+c) 4 + 8 / 3 = 6.666...
+   Saida: 4.0 8.0 3.0 / + = 6.666666666666666
+   Divisao tem precedencia maior que soma: 8/3 resolvido antes de somar com 4.
+
+d) (4 + 8) / 3 = 4.0
+   Saida: 4.0 8.0 + 3.0 / = 4.0
+   Parenteses forcam soma antes: (4+8)=12, depois 12/3=4.
+
+e) 10 % 3 = 1.0  (Atividade 2 - operador MOD)
+   Saida: 10.0 3.0 % = 1.0
+   MOD funciona com mesma precedencia de * e /, pois esta no nivel de term.

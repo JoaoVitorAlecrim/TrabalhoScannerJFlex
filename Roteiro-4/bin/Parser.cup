@@ -1,0 +1,129 @@
+/* Parser.cup - Roteiro 4: Atribuicao
+ *
+ * Novas regras em relacao ao Roteiro 3:
+ *
+ *   statement ::= expr_ptv
+ *               | designator IGUAL expr PTVIRG   -- atribuicao
+ *
+ *   statement_aux ::= statement_aux statement    -- lista left-recursive
+ *                   | statement
+ *
+ * Mudanca em program:
+ *   - expr_list substituido por statement_aux
+ *     (statement_aux aceita tanto expressoes quanto atribuicoes)
+ *
+ * Novos terminais declarados (para uso nos proximos roteiros):
+ *   IGUAL, KW_IF, KW_ELSE, KW_WHILE
+ *
+ * Como funciona a atribuicao:
+ *   vet[4] = 10 - 8;
+ *     -> "vet[4]" e o designator do lado esquerdo (LHS)
+ *     -> "10 - 8" e a expr do lado direito (RHS) = 2.0
+ *     -> imprime: "Atribuicao reconhecida: 2.0"
+ *
+ * Ausencia de conflito shift/reduce:
+ *   Apos reconhecer um designator, com lookahead IGUAL:
+ *     -> IGUAL nao esta em FOLLOW(factor), logo apenas o SHIFT
+ *        para a regra de atribuicao e valido — sem ambiguidade.
+ *   Com qualquer outro lookahead (MAIS, MENOS, PTVIRG, etc.):
+ *     -> reduz designator para factor e segue o caminho de expr_ptv.
+ */
+
+import java_cup.runtime.*;
+
+/* ===== Terminais ===== */
+terminal PTVIRG, PTO, VIRG, IGUAL;
+terminal MAIS, MENOS, MULT, DIV, MOD;
+terminal ABRE_PARENT, FECHA_PARENT;
+terminal ABRE_CHAVE, FECHA_CHAVE;
+terminal ABRE_COLCH, FECHA_COLCH;
+terminal OP_RELACIONAL;
+terminal KW_PROGRAM, KW_IF, KW_ELSE, KW_WHILE;
+terminal Double  NUMBER;
+terminal String  IDENT;
+
+/* ===== Nao terminais ===== */
+non terminal              program, statement_aux, statement, expr_ptv;
+non terminal              varDecl_aux, varDecl, type;
+non terminal String       varDecl_op;
+non terminal Double       expr, term, factor, designator;
+
+/* ===== Producoes ===== */
+
+/* Regra raiz: agora usa statement_aux no lugar de expr_list */
+program ::= KW_PROGRAM IDENT varDecl_aux ABRE_CHAVE statement_aux FECHA_CHAVE
+          ;
+
+/* Lista de statements: left-recursive, exige ao menos um */
+statement_aux ::= statement_aux statement
+                | statement
+                ;
+
+/* Um statement e UMA das duas opcoes:
+ *   1) Expressao matematica simples: 1 + 2; ou a + b;
+ *   2) Atribuicao: a = 5; vet[2] = x + 1; obj.campo = 42;
+ */
+statement ::= expr_ptv
+            | designator IGUAL expr:e PTVIRG
+              {: System.out.println("Atribuicao reconhecida: " + e); :}
+            ;
+
+/* Tipo da variavel: vetor (int[]) ou primitivo/classe (int, Pessoa) */
+type ::= IDENT ABRE_COLCH FECHA_COLCH
+       | IDENT
+       ;
+
+/* Lista de zero ou mais declaracoes antes do bloco {} */
+varDecl_aux ::= varDecl varDecl_aux
+              | /* empty */
+              ;
+
+/* Declaracao: type nome1 [, nome2, ...] ;
+ * varDecl_op retorna String com os nomes extras acumulados (",b,c")
+ */
+varDecl ::= type IDENT:id varDecl_op:op PTVIRG
+            {:
+                System.out.println("Declaracao variavel:" + id + op);
+            :}
+          ;
+
+varDecl_op ::= varDecl_op:op VIRG IDENT:id
+               {: RESULT = op + ", " + id; :}
+             | /* empty */
+               {: RESULT = ""; :}
+             ;
+
+/* Expressao seguida de ponto-e-virgula */
+expr_ptv ::= expr:e {: System.out.println("= " + e); :} PTVIRG
+           ;
+
+/* Expressoes aritmeticas */
+expr ::= expr:e MAIS term:t  {: RESULT = e + t; :}
+       | expr:e MENOS term:t {: RESULT = e - t; :}
+       | MENOS term:t        {: RESULT = -t; :}
+       | term:t              {: RESULT = t; :}
+       ;
+
+term ::= factor:f MULT term:t  {: RESULT = f * t; :}
+       | factor:f DIV term:t   {: RESULT = f / t; :}
+       | factor:f MOD term:t   {: RESULT = f % t; :}
+       | factor:f              {: RESULT = f; :}
+       ;
+
+factor ::= NUMBER:n                        {: RESULT = n; :}
+         | ABRE_PARENT expr:e FECHA_PARENT {: RESULT = e; :}
+         | designator:d                    {: RESULT = d; :}
+         ;
+
+/* designator: retorna 1.0 como valor placeholder.
+ * Nota: o designator do LADO ESQUERDO de uma atribuicao e apenas
+ * reconhecido estruturalmente — seu valor (1.0) e descartado.
+ * So o valor do LADO DIREITO (expr:e) e impresso.
+ */
+designator ::= designator ABRE_COLCH expr FECHA_COLCH
+               {: RESULT = Double.valueOf(1.0); :}
+             | designator PTO IDENT
+               {: RESULT = Double.valueOf(1.0); :}
+             | IDENT
+               {: RESULT = Double.valueOf(1.0); :}
+             ;

@@ -1,0 +1,323 @@
+/* Parser.cup - Roteiro 8: Regra while, for, do-while
+ *
+ * Novas regras em relacao ao Roteiro 7:
+ *
+ *   while_stmt   ::= KW_WHILE ABRE_PARENT condicao FECHA_PARENT
+ *                    ABRE_CHAVE statement_aux FECHA_CHAVE
+ *
+ *   for_stmt     ::= KW_FOR ABRE_PARENT
+ *                    designator IGUAL expr PTVIRG
+ *                    condicao PTVIRG
+ *                    designator IGUAL expr
+ *                    FECHA_PARENT ABRE_CHAVE statement_aux FECHA_CHAVE
+ *
+ *   do_while_stmt ::= KW_DO ABRE_CHAVE statement_aux FECHA_CHAVE
+ *                     KW_WHILE ABRE_PARENT condicao FECHA_PARENT PTVIRG
+ *
+ * Mecanismo deveExecutarBloco (herdado do Roteiro 7, estendido para while/for):
+ *
+ *   while_stmt e for_stmt:
+ *     - condicao seta deveExecutarBloco (true/false)
+ *     - corpo so imprime/conta se deveExecutarBloco == true
+ *     - ao terminar: reseta deveExecutarBloco = true
+ *
+ *   do_while_stmt:
+ *     - Corpo SEMPRE executa (semantica do-while: body-first)
+ *     - mid-rule antes do corpo seta deveExecutarBloco = true forcado
+ *     - condicao e avaliada APOS o corpo
+ *     - ao terminar: reseta deveExecutarBloco = true
+ *
+ *   Por que inicializar deveExecutarBloco = true?
+ *     Statements no nivel externo (fora de qualquer bloco) devem sempre executar.
+ *     Reseta para true ao sair de qualquer estrutura de controle, garantindo que
+ *     o contexto externo retome a execucao corretamente.
+ *
+ * for_stmt: conflitos LALR(1)
+ *   O init "designator IGUAL expr" usa designator standalone (nao reduzido a expr)
+ *   porque IGUAL nao esta em FOLLOW(factor/term/expr). Assim o parser mantem
+ *   designator como designator quando ve IGUAL como lookahead. 0 conflitos.
+ */
+
+import java_cup.runtime.*;
+
+/* ===== Codigo inserido na classe parser ===== */
+parser code {:
+    int    contador   = 0;
+    double somatorio  = 0.0;
+    boolean denomEhVar       = false;
+    boolean deveExecutarBloco = true;
+
+    public void imprimeRelatorio() {
+        System.out.println("Foram reconhecidas e computadas:");
+        System.out.println("- " + contador + " statements");
+        System.out.println("- cujo somatorio foi: " + somatorio);
+    }
+:}
+
+/* ===== Terminais ===== */
+terminal PTVIRG, PTO, VIRG, IGUAL;
+terminal MAIS, MENOS, MULT, DIV, MOD;
+terminal ABRE_PARENT, FECHA_PARENT;
+terminal ABRE_CHAVE, FECHA_CHAVE;
+terminal ABRE_COLCH, FECHA_COLCH;
+terminal KW_PROGRAM, KW_IF, KW_ELSE, KW_WHILE, KW_FOR, KW_DO;
+terminal KW_TRUE, KW_FALSE;
+terminal String  OP_RELACIONAL;
+terminal Double  NUMBER;
+terminal String  IDENT;
+
+/* ===== Nao terminais ===== */
+non terminal              program, varDecl_aux, varDecl, type;
+non terminal String       varDecl_op;
+non terminal Double       statement_aux, statement, expr_ptv;
+non terminal Double       expr, term, factor, designator;
+non terminal Double       if_stmt, while_stmt, for_stmt, do_while_stmt;
+non terminal              condicao, else_stmt;
+
+/* ===== Producoes ===== */
+
+program ::= KW_PROGRAM IDENT varDecl_aux ABRE_CHAVE statement_aux FECHA_CHAVE
+          ;
+
+statement_aux ::= statement_aux statement:s
+                  {:
+                      if (parser.deveExecutarBloco) {
+                          parser.contador++;
+                          parser.somatorio += s;
+                      }
+                      RESULT = s;
+                  :}
+                | statement:s
+                  {:
+                      if (parser.deveExecutarBloco) {
+                          parser.contador++;
+                          parser.somatorio += s;
+                      }
+                      RESULT = s;
+                  :}
+                ;
+
+statement ::= expr_ptv:e        {: RESULT = e; :}
+            | designator IGUAL expr:e PTVIRG
+              {:
+                  if (parser.deveExecutarBloco)
+                      System.out.println("Atribuicao reconhecida: " + e);
+                  RESULT = e;
+              :}
+            | if_stmt:i         {: RESULT = i; :}
+            | while_stmt:w      {: RESULT = w; :}
+            | for_stmt:f        {: RESULT = f; :}
+            | do_while_stmt:d   {: RESULT = d; :}
+            ;
+
+/* ===== while (Atividade 1) =====
+ *
+ * Mesmo mecanismo do if_stmt (sem else):
+ *   condicao seta deveExecutarBloco -> corpo so executa se true
+ *   Reseta deveExecutarBloco = true ao sair
+ */
+while_stmt ::= KW_WHILE ABRE_PARENT
+               {: System.out.print("while("); :}
+               condicao
+               FECHA_PARENT ABRE_CHAVE
+               {: System.out.println("){"); :}
+               statement_aux
+               FECHA_CHAVE
+               {:
+                   System.out.println("}");
+                   parser.deveExecutarBloco = true;
+                   RESULT = Double.valueOf(0.0);
+               :}
+             ;
+
+/* ===== for (Atividade 2) =====
+ *
+ * Sintaxe: for(designator = expr; condicao; designator = expr){ corpo }
+ *
+ * Init e update sao reconhecidos gramaticalmente mas nao produzem saida
+ * (sem tabela de simbolos ainda). So a condicao determina se o corpo executa.
+ *
+ * Por que nao ha conflito LALR(1) com "designator IGUAL expr"?
+ *   IGUAL nao esta em FOLLOW(factor/term/expr): o parser nao reduz
+ *   designator -> factor quando ve IGUAL como lookahead. Assim ele
+ *   mantem o item "for_stmt -> ... designator * IGUAL ..." e shifta IGUAL.
+ */
+for_stmt ::= KW_FOR ABRE_PARENT
+             {: System.out.print("for("); :}
+             designator IGUAL expr PTVIRG
+             condicao
+             PTVIRG
+             designator IGUAL expr
+             FECHA_PARENT ABRE_CHAVE
+             {: System.out.println("){"); :}
+             statement_aux
+             FECHA_CHAVE
+             {:
+                 System.out.println("}");
+                 parser.deveExecutarBloco = true;
+                 RESULT = Double.valueOf(0.0);
+             :}
+           ;
+
+/* ===== do-while (Atividade 3) =====
+ *
+ * Semantica do-while: corpo SEMPRE executa ao menos uma vez.
+ * Mid-rule antes do corpo: forca deveExecutarBloco = true.
+ * Condicao avaliada APOS o corpo (imprime true/false apos o }).
+ * Ao terminar: reseta deveExecutarBloco = true.
+ *
+ * Saida:
+ *   do{
+ *   = expr...
+ *   }while(true/false)
+ */
+do_while_stmt ::= KW_DO ABRE_CHAVE
+                  {:
+                      parser.deveExecutarBloco = true;
+                      System.out.println("do{");
+                  :}
+                  statement_aux
+                  FECHA_CHAVE KW_WHILE ABRE_PARENT
+                  {: System.out.print("}while("); :}
+                  condicao
+                  FECHA_PARENT PTVIRG
+                  {:
+                      System.out.println(")");
+                      parser.deveExecutarBloco = true;
+                      RESULT = Double.valueOf(0.0);
+                  :}
+                ;
+
+/* ===== if-else (inalterado do Roteiro 7) ===== */
+if_stmt ::= KW_IF ABRE_PARENT
+            {: System.out.print("if("); :}
+            condicao
+            FECHA_PARENT ABRE_CHAVE
+            {: System.out.println("){"); :}
+            statement_aux
+            FECHA_CHAVE
+            {: System.out.println("}"); :}
+            else_stmt
+            {: parser.deveExecutarBloco = true; RESULT = Double.valueOf(0.0); :}
+          ;
+
+else_stmt ::= KW_ELSE ABRE_CHAVE
+              {:
+                  parser.deveExecutarBloco = !parser.deveExecutarBloco;
+                  System.out.println("else{");
+              :}
+              statement_aux
+              FECHA_CHAVE
+              {: System.out.println("}"); :}
+            | /* vazio */
+            ;
+
+/* ===== Condicao (inalterada do Roteiro 7) ===== */
+condicao ::= expr:e1 OP_RELACIONAL:op expr:e2
+             {:
+                 boolean resultado = false;
+                 switch (op) {
+                     case "<":  resultado = (e1 <  e2); break;
+                     case "<=": resultado = (e1 <= e2); break;
+                     case ">":  resultado = (e1 >  e2); break;
+                     case ">=": resultado = (e1 >= e2); break;
+                     case "==": resultado = (e1.doubleValue() == e2.doubleValue()); break;
+                     case "!=": resultado = (e1.doubleValue() != e2.doubleValue()); break;
+                     default:   System.out.print("*Simbolo desconhecido");
+                 }
+                 parser.deveExecutarBloco = resultado;
+                 System.out.print(resultado);
+             :}
+           | KW_TRUE
+             {:
+                 parser.deveExecutarBloco = true;
+                 System.out.print("true");
+             :}
+           | KW_FALSE
+             {:
+                 parser.deveExecutarBloco = false;
+                 System.out.print("false");
+             :}
+           ;
+
+/* ===== Declaracoes ===== */
+type ::= IDENT ABRE_COLCH FECHA_COLCH
+       | IDENT
+       ;
+
+varDecl_aux ::= varDecl varDecl_aux
+              | /* empty */
+              ;
+
+varDecl ::= type IDENT:id varDecl_op:op PTVIRG
+            {: System.out.println("Declaracao variavel:" + id + op); :}
+          ;
+
+varDecl_op ::= varDecl_op:op VIRG IDENT:id
+               {: RESULT = op + ", " + id; :}
+             | /* empty */
+               {: RESULT = ""; :}
+             ;
+
+/* ===== Expressoes ===== */
+expr_ptv ::= expr:e
+             {:
+                 if (parser.deveExecutarBloco)
+                     System.out.println("= " + e);
+                 RESULT = e;
+             :}
+             PTVIRG
+           ;
+
+expr ::= expr:e MAIS  term:t {: RESULT = e + t; :}
+       | expr:e MENOS term:t {: RESULT = e - t; :}
+       | MENOS term:t        {: RESULT = -t; :}
+       | term:t              {: RESULT = t; :}
+       ;
+
+term ::= factor:f MULT term:t
+         {: RESULT = f * t; :}
+       | factor:f DIV term:t
+         {:
+             if (parser.denomEhVar && t.doubleValue() == 0.0) {
+                 java.util.Scanner leitor = new java.util.Scanner(System.in);
+                 double denominador = 0.0;
+                 do {
+                     System.out.println("O denominador nao pode ser zero");
+                     System.out.println("Informe o denominador:");
+                     denominador = leitor.nextDouble();
+                 } while (denominador == 0.0);
+                 RESULT = f / denominador;
+             } else {
+                 RESULT = f / t;
+             }
+         :}
+       | factor:f MOD term:t
+         {:
+             if (f % 1.0 != 0.0 || t % 1.0 != 0.0) {
+                 System.out.println("Erro semantico: MOD so e definido para inteiros!");
+                 System.out.println("  Operandos: " + f + " % " + t);
+                 RESULT = 0.0;
+             } else {
+                 RESULT = (double)((int)(double)f % (int)(double)t);
+             }
+         :}
+       | factor:f
+         {: RESULT = f; :}
+       ;
+
+factor ::= NUMBER:n
+           {: parser.denomEhVar = false; RESULT = n; :}
+         | ABRE_PARENT expr:e FECHA_PARENT
+           {: parser.denomEhVar = false; RESULT = e; :}
+         | designator:d
+           {: parser.denomEhVar = true; RESULT = d; :}
+         ;
+
+designator ::= designator ABRE_COLCH expr FECHA_COLCH
+               {: RESULT = Double.valueOf(1.0); :}
+             | designator PTO IDENT
+               {: RESULT = Double.valueOf(1.0); :}
+             | IDENT
+               {: RESULT = Double.valueOf(1.0); :}
+             ;

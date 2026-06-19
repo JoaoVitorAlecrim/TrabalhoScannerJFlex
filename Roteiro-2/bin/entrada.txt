@@ -1,0 +1,6 @@
+a + b;
+pessoa.idade + 1;
+-pessoa.idade[1 + 2];
+1 + vetor[a + pessoa.idade];
+(3-2) * 4 + vetor[a.idade];
+-1 - vetor[8] - 3;

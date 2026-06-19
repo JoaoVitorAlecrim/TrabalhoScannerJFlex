@@ -1,0 +1,19 @@
+program p
+  int a;
+  int[] vet;
+  float b, x;
+{
+  vet[4] = 10 - 8;
+  1 + 2;
+  4 + a;
+
+  while(i < 10){
+    3/2;
+  }
+
+  if(8 < 9){
+    1+3;
+  }else{
+    2 + 3;
+  }
+}

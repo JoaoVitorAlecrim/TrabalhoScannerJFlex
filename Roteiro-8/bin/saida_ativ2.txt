@@ -1,0 +1,69 @@
+--- Roteiro 8: Atividade 2 - estrutura for ---
+
+Entrada (entrada_ativ2.txt):
+  program p
+  {
+    for(x = 0; x < 10; x = x + 1){
+      1 + 2;
+      5 - 1;
+    }
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada_ativ2.txt
+
+Saida real:
+for(true){
+= 3.0
+= 4.0
+}
+Foram reconhecidas e computadas:
+- 3 statements
+- cujo somatorio foi: 7.0
+Arquivo sem erros de sintaxe!
+
+---
+
+Gramatica implementada:
+
+  for_stmt ::= KW_FOR ABRE_PARENT
+               {: System.out.print("for("); :}
+               designator IGUAL expr PTVIRG     <- init:  x = 0
+               condicao                          <- cond:  x < 10
+               PTVIRG
+               designator IGUAL expr             <- update: x = x+1
+               FECHA_PARENT ABRE_CHAVE
+               {: System.out.println("){"); :}
+               statement_aux
+               FECHA_CHAVE
+               {: println("}"); deveExecutarBloco = true; RESULT = 0.0; :}
+
+  Observacoes:
+  - Init e update sao gramaticalmente reconhecidos mas nao produzem saida
+    (sem tabela de simbolos: x = qualquer valor nao tem efeito)
+  - Apenas a condicao determina se o corpo executa (via deveExecutarBloco)
+  - Condicao imprime true/false, seta deveExecutarBloco
+
+Trace:
+  x = 1.0 (placeholder para qualquer variavel)
+  Init: x = 0 -> reconhecido, nao executado
+  Cond: x < 10 -> 1.0 < 10 = true -> deveExecutarBloco = true
+  Update: x = x+1 -> reconhecido, nao executado
+  Corpo (deveExec=true):
+    1+2 = 3.0  -> imprime, c=1, s=3.0
+    5-1 = 4.0  -> imprime, c=2, s=4.0... wait actually:
+
+  wait - x+1: x=1.0 (designator), 1.0+1=2.0. Mas isso esta no cabecalho do for,
+  nao e impresso. O update e apenas reconhecido.
+
+Porque nao ha conflito LALR(1) com "designator IGUAL expr"?
+  IGUAL nao esta em FOLLOW(factor/term/expr). Quando o parser ve "designator"
+  seguido de "IGUAL", ele NAO reduz designator -> factor porque IGUAL nao
+  acionaria nenhuma reducao valida. Assim ele mantem o item
+  "for_stmt -> ... designator * IGUAL ..." e shifta IGUAL diretamente.
+  Resultado: 0 conflitos detectados.
+
+Contagem:
+  Interno: 1+2(3.0) + 5-1(4.0) = 2 statements (deveExec=true)
+  Externo: for_stmt(0.0) = 1 statement
+  Total: 3 statements, somatorio = 3+4+0 = 7.0

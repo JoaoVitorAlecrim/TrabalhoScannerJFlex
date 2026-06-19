@@ -1,0 +1,47 @@
+--- Atividade 3: indice negativo com retry loop ---
+Comando: echo "-2\n3\n10\n2\n7\n3\n4" | java -cp ".;java-cup-11b-runtime.jar" Main entrada_ativ3.txt
+
+Entrada (entrada_ativ3.txt):
+  vetor[-3];
+  vetor[-5 + 2];
+  a + b;
+
+Valores fornecidos pelo usuario (em ordem):
+  -2  -> novo indice para vetor[-3]     (rejeitado: ainda negativo)
+   3  -> novo indice para vetor[-3]     (aceito: >= 0)
+  10  -> valor de vetor[3]
+   2  -> novo indice para vetor[-3]     (aceito para o segundo caso)
+   7  -> valor de vetor[2]
+   3  -> valor de a
+   4  -> valor de b
+
+Saida real:
+Erro semantico: indice negativo de vetor (-3) em 'vetor[...]'
+Informe um novo indice valido (>= 0): Indice ainda invalido (-2). Deve ser >= 0. Tente novamente.
+Informe um novo indice valido (>= 0): Informe o valor do designator (vetor[3]): = 10.0
+Erro semantico: indice negativo de vetor (-3) em 'vetor[...]'
+Informe um novo indice valido (>= 0): Informe o valor do designator (vetor[2]): = 7.0
+Informe o valor do designator (a): Informe o valor do designator (b): = 7.0
+Arquivo sem erros de sintaxe!
+
+---
+
+Analise:
+
+1) vetor[-3]:
+   - -5 + 2 = -3 (expressao avaliada como -3 pelo parser)
+   Espera, vetor[-3] tem indice -3 direto.
+   Atividade 2: erro semantico reportado ("indice negativo de vetor (-3)")
+   Atividade 3: loop pede novo valor
+     -> usuario fornece -2: ainda invalido -> mensagem e volta ao loop
+     -> usuario fornece  3: valido -> designator passa a ser "vetor[3]"
+   Resultado: vetor[3] = 10 -> = 10.0
+
+2) vetor[-5 + 2]:
+   - expr dentro do colchete: -5 + 2 = -3 (MENOS term(5) + 2 = -3)
+   Atividade 2: erro semantico ("indice negativo de vetor (-3)")
+   Atividade 3: usuario fornece 2 -> valido -> "vetor[2]"
+   Resultado: vetor[2] = 7 -> = 7.0
+
+3) a + b:
+   Sem erros. a=3, b=4 -> = 7.0

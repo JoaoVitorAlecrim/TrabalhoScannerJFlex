@@ -1,0 +1,52 @@
+--- Roteiro 4: Teste Completo ---
+
+Entrada (entrada_completo.txt):
+  program teste
+    int a, b;
+    int[] vetor;
+    Pessoa obj;
+  {
+    a = 5;
+    b = 10 - 3;
+    vetor[2] = a;
+    obj.campo = 42;
+    a + b;
+    produto.preco = (100 - 20) / 2;
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada_completo.txt
+
+Saida real:
+Declaracao variavel:a, b
+Declaracao variavel:vetor
+Declaracao variavel:obj
+Atribuicao reconhecida: 5.0
+Atribuicao reconhecida: 7.0
+Atribuicao reconhecida: 1.0
+Atribuicao reconhecida: 42.0
+= 2.0
+Atribuicao reconhecida: 40.0
+Arquivo sem erros de sintaxe!
+
+---
+
+Analise linha a linha:
+
+  int a, b;              -> "Declaracao variavel:a, b"
+  int[] vetor;           -> "Declaracao variavel:vetor"
+  Pessoa obj;            -> "Declaracao variavel:obj"   (tipo customizado = IDENT)
+
+  a = 5;                 -> LHS=a, RHS=5.0         -> "Atribuicao reconhecida: 5.0"
+  b = 10 - 3;            -> LHS=b, RHS=7.0         -> "Atribuicao reconhecida: 7.0"
+  vetor[2] = a;          -> LHS=vetor[2], RHS=a=1.0 -> "Atribuicao reconhecida: 1.0"
+  obj.campo = 42;        -> LHS=obj.campo, RHS=42.0 -> "Atribuicao reconhecida: 42.0"
+  a + b;                 -> expr_ptv: 1.0+1.0=2.0   -> "= 2.0"
+  produto.preco = (100-20)/2;
+    -> RHS: (100-20) = 80, 80/2 = 40.0             -> "Atribuicao reconhecida: 40.0"
+
+Observacoes:
+  - "Pessoa" como tipo e tratada como IDENT pelo scanner (sem keyword separada)
+  - LHS de atribuicoes pode ser qualquer designator valido (simples, vetor, campo)
+  - O valor do LHS e descartado; apenas o RHS (expr) e impresso
+

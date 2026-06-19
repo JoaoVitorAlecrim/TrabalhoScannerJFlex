@@ -1,0 +1,167 @@
+/* Parser.cup - Roteiro 3: Declaracao de Variavel
+ *
+ * Novas regras gramaticais implementadas:
+ *
+ *   type        ::= IDENT '[' ']'  -- tipo vetor: int[], float[], Pessoa[]
+ *                |  IDENT          -- tipo simples: int, float, Pessoa
+ *
+ *   varDecl_op  ::= varDecl_op ',' IDENT  -- nomes extras: ", b, c" (recursao esquerda)
+ *                |  vazio                 -- retorna "" se apenas um nome
+ *
+ *   varDecl     ::= type IDENT varDecl_op ';'
+ *                   -- imprime: "Declaracao variavel:nome[, extras]"
+ *                   -- varDecl_op retorna String com os nomes adicionais
+ *
+ *   varDecl_aux ::= varDecl varDecl_aux   -- lista de declaracoes (recursao direita)
+ *                |  vazio                 -- zero declaracoes tambem e valido
+ *
+ *   program     ::= KW_PROGRAM IDENT varDecl_aux '{' expr_list '}'
+ *                   -- estrutura raiz do programa Java--
+ *
+ * Comportamento do designator:
+ *   Retorna 1.0 como valor placeholder para qualquer variavel ou acesso.
+ *   (Sem tabela de simbolos, nao temos como saber o valor real da variavel.)
+ *
+ * Exemplo valido de entrada:
+ *   program p
+ *     int a;
+ *     int[] vet;
+ *     float b, x;
+ *   {
+ *     1 + 2;
+ *     4 + a;
+ *   }
+ *
+ * Saida esperada:
+ *   Declaracao variavel:a
+ *   Declaracao variavel:vet
+ *   Declaracao variavel:b, x
+ *   = 3.0
+ *   = 5.0
+ *   Arquivo sem erros de sintaxe!
+ */
+
+import java_cup.runtime.*;
+
+/* ===== Terminais ===== */
+terminal PTVIRG, PTO, VIRG;
+terminal MAIS, MENOS, MULT, DIV, MOD;
+terminal ABRE_PARENT, FECHA_PARENT;
+terminal ABRE_CHAVE, FECHA_CHAVE;
+terminal ABRE_COLCH, FECHA_COLCH;
+terminal OP_RELACIONAL, KW_PROGRAM;
+terminal Double  NUMBER;
+terminal String  IDENT;
+
+/* ===== Nao terminais ===== */
+non terminal              program, varDecl_aux, varDecl, type;
+non terminal String       varDecl_op;
+non terminal              expr_list, expr_ptv;
+non terminal Double       expr, term, factor, designator;
+
+/* ===== Producoes ===== */
+
+/* Regra raiz: programa completo com declaracoes e bloco de expressoes */
+program ::= KW_PROGRAM IDENT varDecl_aux ABRE_CHAVE expr_list FECHA_CHAVE
+          ;
+
+/* Tipo da variavel:
+ *   IDENT '[' ']'  ->  tipo vetor  (ex: int[], float[], Pessoa[])
+ *   IDENT          ->  tipo simples (ex: int, float, Pessoa)
+ *
+ * Sem conflito shift/reduce: quando o parser ve IDENT seguido de '[',
+ * ABRE_COLCH nao esta em FOLLOW(type) — logo o parser faz shift corretamente.
+ */
+type ::= IDENT ABRE_COLCH FECHA_COLCH
+       | IDENT
+       ;
+
+/* Lista de declaracoes antes do bloco {}:
+ *   - Recursao a direita (nao causa conflito neste contexto)
+ *   - Producao vazia permite zero declaracoes
+ */
+varDecl_aux ::= varDecl varDecl_aux
+              | /* empty */
+              ;
+
+/* Declaracao completa:  type nome [, nome2, ...] ;
+ *
+ * varDecl_op retorna String com os nomes extras (ex: ", b, c" ou "").
+ * Concatenamos com o primeiro nome e imprimimos tudo de uma vez ao final.
+ * Isso evita acoes de meio de producao (mid-rule actions) e e mais limpo.
+ */
+varDecl ::= type IDENT:id varDecl_op:op PTVIRG
+            {:
+                System.out.println("Declaracao variavel:" + id + op);
+            :}
+          ;
+
+/* Complemento de varDecl: acumula nomes extras separados por virgula.
+ *
+ *   varDecl_op ::= varDecl_op ',' IDENT  ->  recursao esquerda: "= op + ', ' + id"
+ *                | vazio                 ->  base: "" (string vazia)
+ *
+ * Exemplo para "float b, x, z;":
+ *   vazio       -> ""
+ *   "" + ", x"  -> ", x"
+ *   ", x" + ", z" -> ", x, z"
+ * Resultado final: "Declaracao variavel:b, x, z"
+ */
+varDecl_op ::= varDecl_op:op VIRG IDENT:id
+               {: RESULT = op + ", " + id; :}
+             | /* empty */
+               {: RESULT = ""; :}
+             ;
+
+/* Lista de expressoes dentro do bloco { } */
+expr_list ::= expr_list expr_ptv
+            | expr_ptv
+            ;
+
+expr_ptv ::= expr:e {: System.out.println("= " + e); :} PTVIRG
+           ;
+
+/* Adicao e subtracao: recursao a esquerda (associatividade esquerda) */
+expr ::= expr:e MAIS term:t
+         {: RESULT = e + t; :}
+       | expr:e MENOS term:t
+         {: RESULT = e - t; :}
+       | MENOS term:t
+         {: RESULT = -t; :}
+       | term:t
+         {: RESULT = t; :}
+       ;
+
+/* Multiplicacao, divisao, modulo: recursao a direita (mesma precedencia do Roteiro 1) */
+term ::= factor:f MULT term:t
+         {: RESULT = f * t; :}
+       | factor:f DIV term:t
+         {: RESULT = f / t; :}
+       | factor:f MOD term:t
+         {: RESULT = f % t; :}
+       | factor:f
+         {: RESULT = f; :}
+       ;
+
+factor ::= NUMBER:n
+           {: RESULT = n; :}
+         | ABRE_PARENT expr:e FECHA_PARENT
+           {: RESULT = e; :}
+         | designator:d
+           {: RESULT = d; :}
+         ;
+
+/* designator: acesso a variaveis, atributos e indices de vetor.
+ *
+ * Retorna sempre 1.0 como valor placeholder — sem tabela de simbolos,
+ * nao ha como recuperar o valor real de uma variavel declarada.
+ *
+ * Exemplos aceitos: a  |  pessoa.nome  |  vetor[2]  |  obj.arr[i+1]
+ */
+designator ::= designator ABRE_COLCH expr FECHA_COLCH
+               {: RESULT = Double.valueOf(1.0); :}
+             | designator PTO IDENT
+               {: RESULT = Double.valueOf(1.0); :}
+             | IDENT
+               {: RESULT = Double.valueOf(1.0); :}
+             ;

@@ -1,0 +1,133 @@
+/* Parser.cup - Roteiro 2: IDENT e Designator
+ *
+ * === Atividade 1 ===
+ * Este tipo de tratamento pertence a fase de ANALISE SEMANTICA.
+ *
+ * Por que NAO e lexico? Porque a analise lexica so reconhece tokens (IDENT, NUMBER...).
+ * Ela nao sabe o que "a + b" significa, apenas que sao tres tokens.
+ *
+ * Por que NAO e sintatico? A analise sintatica verifica ESTRUTURA: se a sequencia
+ * de tokens forma uma expressao valida gramaticalmente. Ela aceita "vetor[-5]" como
+ * sintaticamente correto (a estrutura e valida: designator[expr]).
+ *
+ * Por que e SEMANTICO? Porque verificar que o INDICE de um vetor nao pode ser negativo
+ * e uma regra sobre o SIGNIFICADO (semantica) do programa, nao sobre sua estrutura.
+ * Da mesma forma, perguntar o valor de uma variavel e avaliar uma expressao pertence
+ * a semantica: estamos computando o SIGNIFICADO de cada expressao.
+ *
+ * === Atividade 2 ===
+ * Quando o indice de um vetor for negativo, o analisador reporta um ERRO SEMANTICO.
+ *
+ * === Atividade 3 ===
+ * Alem de reportar o erro, o analisador pede um NOVO valor valido ao usuario
+ * em loop, ate que seja fornecido um indice >= 0.
+ */
+
+import java_cup.runtime.*;
+
+/* Instancia compartilhada de java.util.Scanner para leitura interativa.
+ * Declarada no bloco action code para ser reutilizada em todos os blocos {:  :},
+ * evitando o problema de multiplos Scanner consumindo o buffer de System.in. */
+action code {:
+    java.util.Scanner userInput = new java.util.Scanner(System.in);
+:}
+
+/* ===== Terminais ===== */
+terminal PTVIRG, PTO, VIRG;
+terminal MAIS, MENOS, MULT, DIV, MOD;
+terminal ABRE_PARENT, FECHA_PARENT;
+terminal ABRE_CHAVE, FECHA_CHAVE;
+terminal ABRE_COLCH, FECHA_COLCH;
+terminal OP_RELACIONAL, KW_IF;
+terminal Double  NUMBER;
+terminal String  IDENT;
+
+/* ===== Nao terminais ===== */
+non terminal         expr_list, expr_ptv;
+non terminal Double  expr, term, factor;
+non terminal String  designator;
+
+/* ===== Producoes ===== */
+
+expr_list ::= expr_list expr_ptv
+            | expr_ptv
+            ;
+
+expr_ptv ::= expr:e {: System.out.println("= " + e); :} PTVIRG
+           ;
+
+/* Adicao e subtracao (menor precedencia) — recursao a esquerda */
+expr ::= expr:e MAIS term:t
+         {: RESULT = e + t; :}
+       | expr:e MENOS term:t
+         {: RESULT = e - t; :}
+       | MENOS term:t
+         {: RESULT = -t; :}
+       | term:t
+         {: RESULT = t; :}
+       ;
+
+/* Multiplicacao, divisao e modulo (maior precedencia) — recursao a direita */
+term ::= factor:f MULT term:t
+         {: RESULT = f * t; :}
+       | factor:f DIV term:t
+         {: RESULT = f / t; :}
+       | factor:f MOD term:t
+         {: RESULT = f % t; :}
+       | factor:f
+         {: RESULT = f; :}
+       ;
+
+/* factor: quando encontra um designator, solicita o valor ao usuario.
+ * Usamos java.util.Scanner (nome completo para evitar conflito com a classe Scanner do JFlex).
+ */
+factor ::= NUMBER:n
+           {: RESULT = n; :}
+         | ABRE_PARENT expr:e FECHA_PARENT
+           {: RESULT = e; :}
+         | designator:d
+           {:
+               System.out.print("Informe o valor do designator (" + d + "): ");
+               RESULT = Double.valueOf(userInput.nextDouble());
+           :}
+         ;
+
+/* designator: representa variaveis simples, acesso a atributos e indices de vetores.
+ *
+ * Exemplos aceitos:
+ *   a                        -> IDENT
+ *   pessoa.idade             -> designator PTO IDENT
+ *   vetor[i]                 -> designator ABRE_COLCH expr FECHA_COLCH
+ *   pessoa.idade[1 + 2]      -> combinacoes
+ *   vetor[a + pessoa.idade]  -> indice pode ser qualquer expressao
+ *
+ * Atividade 2: detecta indice negativo e reporta erro semantico.
+ * Atividade 3: apos o erro, pede em loop um novo indice valido (>= 0).
+ */
+designator ::= designator:d ABRE_COLCH expr:e FECHA_COLCH
+               {:
+                   double idx = e;
+
+                   /* Atividade 2: detecta indice negativo e reporta erro semantico */
+                   if (idx < 0) {
+                       System.err.println("Erro semantico: indice negativo de vetor ("
+                                          + (int)idx + ") em '" + d + "[...]'");
+
+                       /* Atividade 3: solicita novo indice valido em loop */
+                       while (idx < 0) {
+                           System.out.print("Informe um novo indice valido (>= 0): ");
+                           idx = userInput.nextDouble();
+                           if (idx < 0) {
+                               System.err.println("Indice ainda invalido (" + (int)idx
+                                                  + "). Deve ser >= 0. Tente novamente.");
+                           }
+                       }
+                   }
+
+                   RESULT = d + "[" + (int)idx + "]";
+               :}
+             | designator:d PTO IDENT:id
+               {: RESULT = d + "." + id; :}
+             | IDENT:id
+               {: RESULT = id; :}
+             ;

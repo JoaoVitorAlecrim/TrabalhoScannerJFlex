@@ -1,0 +1,68 @@
+--- Roteiro 9: Atividade 1 - Erros Semanticos (Divisao por Zero + MOD) ---
+
+Entrada (entrada_ativ1.txt):
+  program p
+  {
+    10 / 0;
+    5 / 2;
+    3 / 0;
+    7 % 2;
+    3.5 % 2;
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada_ativ1.txt
+
+Saida real:
+= 0.0
+= 2.5
+= 0.0
+= 1.0
+= 0.0
+Foram reconhecidas e computadas:
+- 5 statements
+- cujo somatorio foi: 3.5
+Arquivo sem erros de sintaxe!
+
+=== Lista de Erros ===
+  Divisao por zero: 10.0 / 0.0
+  Divisao por zero: 3.0 / 0.0
+  MOD aplicado a numero nao inteiro: 3.5 % 2.0
+Total: 3 erro(s) encontrado(s)
+
+---
+
+Como funciona (Parser.cup - regra term):
+
+  Divisao por zero:
+    term ::= factor:f DIV term:t
+      {: if (t.doubleValue() == 0.0) {
+             ListaErro.adicionar("Divisao por zero: " + f + " / " + t);
+             RESULT = 0.0;                    <- continua com 0 para nao parar
+         } else {
+             RESULT = f / t;
+         } :}
+
+  MOD nao-inteiro:
+    term ::= factor:f MOD term:t
+      {: if (f % 1.0 != 0.0 || t % 1.0 != 0.0) {
+             ListaErro.adicionar("MOD aplicado a numero nao inteiro: " + f + " % " + t);
+             RESULT = 0.0;
+         } else {
+             RESULT = (double)((int)(double)f % (int)(double)t);
+         } :}
+
+Mudanca vs Roteiro 8:
+  - Removido denomEhVar: antes so checava divisao em variaveis
+  - Agora qualquer divisao por zero e registrada (literal 0 tambem)
+  - Removido loop interativo pedindo novo denominador
+  - Erros aparecem JUNTOS ao final, nao durante a analise
+
+Analise linha a linha:
+  10 / 0  -> f=10.0, t=0.0  -> ERRO registrado, = 0.0
+  5 / 2   -> f=5.0,  t=2.0  -> = 2.5
+  3 / 0   -> f=3.0,  t=0.0  -> ERRO registrado, = 0.0
+  7 % 2   -> f=7.0,  t=2.0  -> ambos inteiros -> = 1.0
+  3.5 % 2 -> f=3.5,  t=2.0  -> 3.5 nao inteiro -> ERRO registrado, = 0.0
+
+Somatorio: 0 + 2.5 + 0 + 1 + 0 = 3.5

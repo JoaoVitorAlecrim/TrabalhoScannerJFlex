@@ -1,0 +1,62 @@
+--- Roteiro 9: Registro de Erros com Localizacao ---
+
+Entrada (entrada.txt) — programa sem erros:
+  program p
+  {
+    1 + 2;
+    10 - 3;
+    6 / 2;
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada.txt
+
+Saida real:
+= 3.0
+= 7.0
+= 3.0
+Foram reconhecidas e computadas:
+- 3 statements
+- cujo somatorio foi: 13.0
+Arquivo sem erros de sintaxe!
+Nenhum erro encontrado.
+
+---
+
+Conceito central do Roteiro 9:
+
+  ANTES (Roteiros 1-8):
+    Erros eram TRATADOS interativamente durante a analise:
+      - Divisao por zero: pedia novo denominador ao usuario em loop
+      - MOD nao-inteiro: imprimia mensagem e continuava com 0
+      - Erro lexico: imprimia no System.err imediatamente
+
+  AGORA (Roteiro 9):
+    Erros sao REGISTRADOS em uma lista e impressos AO FINAL.
+    O compilador continua analisando mesmo com erros.
+    Filosofia real de compiladores: notificar todos os erros de uma vez.
+
+Arquitetura:
+
+  Erro.java:
+    - Classe que representa um unico erro
+    - Campos: mensagem (String), linha (int), coluna (int)
+    - toString(): "[linha L, coluna C] mensagem" ou so "mensagem"
+
+  ListaErro.java:
+    - Lista estatica de Erro (acessivel de qualquer lugar)
+    - adicionar(msg, linha, col) <- com localizacao (erros lexicos)
+    - adicionar(msg)             <- sem localizacao (erros semanticos)
+    - imprimir()                 <- ao final de Main
+    - temErros()                 <- boolean
+
+  Scanner.flex:
+    [^] rule: ListaErro.adicionar(...) em vez de System.err.println(...)
+
+  Parser.cup:
+    DIV: if (t == 0.0) -> ListaErro.adicionar(...); RESULT = 0.0;
+    MOD: if (nao inteiro) -> ListaErro.adicionar(...); RESULT = 0.0;
+    syntax_error(): sobrescrito para registrar erros sintaticos na lista
+
+  Main.java:
+    Sempre chama ListaErro.imprimir() ao final (dentro ou fora do try/catch)

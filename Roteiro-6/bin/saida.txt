@@ -1,0 +1,72 @@
+--- Roteiro 6: Regra if ---
+
+Entrada (entrada.txt) — exemplo do PDF:
+  program p
+    int a, b;
+  {
+    if(3 < 30) {
+      1 + 2;
+      3 - 2 * 4;
+      (3 - 2) * 4;
+      -1 - 2 - 3;
+      12 / 4 / 2;
+    }
+    a = 5;
+  }
+
+Comando:
+  java -cp ".;java-cup-11b-runtime.jar" Main entrada.txt
+
+Saida real:
+Declaracao variavel:a, b
+if(true){
+= 3.0
+= -5.0
+= 4.0
+= -6.0
+= 6.0
+}
+Atribuicao reconhecida: 5.0
+Foram reconhecidas e computadas:
+- 7 statements
+- cujo somatorio foi: 7.0
+Arquivo sem erros de sintaxe!
+
+---
+
+Estrutura do if:
+
+  if_stmt ::= KW_IF ABRE_PARENT
+              {: System.out.print("if("); :}        <- mid-rule 1
+              condicao
+              FECHA_PARENT ABRE_CHAVE
+              {: System.out.println("){"); :}        <- mid-rule 2
+              statement_aux
+              FECHA_CHAVE
+              {: System.out.println("}"); RESULT = 0.0; :}
+
+  condicao ::= expr:e1 OP_RELACIONAL:op expr:e2
+               {: switch(op) { ... } System.out.print(resultado); :}
+             | KW_TRUE  {: System.out.print("true");  :}    <- Atividade 2
+             | KW_FALSE {: System.out.print("false"); :}    <- Atividade 2
+
+Como funciona a impressao "if(true){":
+  1. Mid-rule 1 imprime "if("    (sem newline)
+  2. condicao avalia 3 < 30 = true e imprime "true"  (sem newline)
+  3. Mid-rule 2 imprime "){"    (com newline via println)
+  Total da primeira linha: "if(true){"
+
+Acoes mid-rule:
+  JCup converte cada acao embutida em um nao-terminal anonimo interno.
+  Ex: {: print("if("); :} vira "_anon1 -> epsilon {: action :}"
+  Nenhum conflito LALR(1) gerado: 0 conflitos detectados.
+
+Analise das expressoes do corpo (todas avaliadas, condicao nao controla):
+  1 + 2           = 3.0
+  3 - 2 * 4       = 3 - 8    = -5.0   (precedencia: MULT antes de MENOS)
+  (3 - 2) * 4     = 1 * 4    =  4.0
+  -1 - 2 - 3      = ((-1)-2)-3 = -6.0  (left-recursive expr)
+  12 / 4 / 2      = 12/(4/2) = 12/2 = 6.0  (right-recursive term)
+
+Contador: 5 internos + 1 (if_stmt) + 1 (a=5) = 7 statements
+Somatorio: 3+(-5)+4+(-6)+6+0+5 = 7.0

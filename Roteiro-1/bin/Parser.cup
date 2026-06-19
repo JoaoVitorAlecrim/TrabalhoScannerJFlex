@@ -1,0 +1,82 @@
+/* Parser.cup - Roteiro 1: Local, Bloco e Precedencia (expr, term, factor)
+ *
+ * Gramatica com RECURSIVIDADE A DIREITA e acoes semanticas que imprimem
+ * cada passo da reducao, mostrando a precedencia de * sobre +.
+ *
+ * Regras (recursao a direita em term):
+ *   expr_list -> expr_list expr_ptv | expr_ptv
+ *   expr_ptv  -> expr ;
+ *   expr      -> expr + term | expr - term | - term | term
+ *   term      -> factor * term | factor / term | factor % term | factor
+ *   factor    -> NUMBER | ( expr )
+ */
+
+import java_cup.runtime.*;
+
+/* ===== Terminais ===== */
+terminal PTVIRG, MAIS, MENOS, MULT, DIV, MOD, ABRE_PARENT, FECHA_PARENT;
+terminal Double NUMBER;
+
+/* ===== Nao terminais ===== */
+non terminal expr_list, expr_ptv;
+non terminal Double expr, term, factor;
+
+/* ===== Producoes ===== */
+
+expr_list ::= expr_list expr_ptv
+            | expr_ptv
+            ;
+
+/* Imprime o resultado de cada expressao terminada por ponto-e-virgula */
+expr_ptv ::= expr:e {: System.out.println("= " + e); :} PTVIRG
+           ;
+
+/* Adicao e subtracao - recursao a ESQUERDA em expr (menor precedencia) */
+expr ::= expr:e MAIS term:t
+         {:
+             System.out.print("+ ");
+             RESULT = e + t;
+         :}
+       | expr:e MENOS term:t
+         {:
+             System.out.print("- ");
+             RESULT = e - t;
+         :}
+       | MENOS term:t
+         {:
+             System.out.print("u- ");
+             RESULT = -t;
+         :}
+       | term:t
+         {: RESULT = t; :}
+       ;
+
+/* Multiplicacao, divisao e modulo - recursao a DIREITA em term (maior precedencia) */
+term ::= factor:f MULT term:t
+         {:
+             System.out.print("* ");
+             RESULT = f * t;
+         :}
+       | factor:f DIV term:t
+         {:
+             System.out.print("/ ");
+             RESULT = f / t;
+         :}
+       | factor:f MOD term:t
+         {:
+             System.out.print("% ");
+             RESULT = f % t;
+         :}
+       | factor:f
+         {: RESULT = f; :}
+       ;
+
+/* Fator: numero literal ou expressao entre parenteses */
+factor ::= NUMBER:n
+           {:
+               System.out.print(n + " ");
+               RESULT = n;
+           :}
+         | ABRE_PARENT expr:e FECHA_PARENT
+           {: RESULT = e; :}
+         ;
