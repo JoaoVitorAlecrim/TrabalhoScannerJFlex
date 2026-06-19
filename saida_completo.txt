@@ -1,0 +1,305 @@
+[1,1] palavra reservada: program
+[1,9] identificador: ProgramaCompleto
+[20,1] palavra reservada: final
+[20,7] palavra reservada: int
+[20,11] identificador: limite
+[20,18] simbolo: =
+[20,20] numero inteiro: 10
+[20,22] simbolo: ;
+[21,1] palavra reservada: final
+[21,7] palavra reservada: char
+[21,12] identificador: letra
+[21,18] simbolo: =
+[21,20] charConst: 'A'
+[21,23] simbolo: ;
+[22,1] palavra reservada: final
+[22,7] palavra reservada: char
+[22,12] identificador: quebra
+[22,19] simbolo: =
+[22,21] charConst: '\n'
+[22,25] simbolo: ;
+[23,1] palavra reservada: final
+[23,7] palavra reservada: char
+[23,12] identificador: barra
+[23,18] simbolo: =
+[23,20] charConst: '\\'
+[23,24] simbolo: ;
+[25,1] palavra reservada: class
+[25,7] identificador: Pessoa
+[25,14] simbolo: {
+[26,3] palavra reservada: int
+[26,7] identificador: idade
+[26,12] simbolo: ;
+[27,3] palavra reservada: float
+[27,9] identificador: altura
+[27,15] simbolo: ;
+[28,3] palavra reservada: char
+[28,8] identificador: inicial
+[28,15] simbolo: ;
+[29,1] simbolo: }
+[31,1] palavra reservada: class
+[31,7] identificador: Vetor
+[31,13] simbolo: {
+[32,3] palavra reservada: int
+[32,7] identificador: tamanho
+[32,14] simbolo: ;
+[33,1] simbolo: }
+[35,1] palavra reservada: void
+[35,6] identificador: metodoTeste
+[35,17] simbolo: (
+[35,18] simbolo: )
+[35,20] simbolo: {
+[36,3] palavra reservada: int
+[36,7] identificador: x
+[36,8] simbolo: ;
+[37,3] palavra reservada: float
+[37,9] identificador: y
+[37,10] simbolo: ;
+[38,3] palavra reservada: char
+[38,8] identificador: c
+[38,9] simbolo: ;
+[39,1] simbolo: }
+[45,1] simbolo: *
+[45,2] simbolo: /
+[47,1] simbolo: {
+[48,3] identificador: x
+[48,5] simbolo: =
+[48,7] numero inteiro: 10
+[48,9] simbolo: ;
+[49,3] identificador: y
+[49,5] simbolo: =
+[49,7] numero real: 3.14
+[49,11] simbolo: ;
+[50,3] identificador: c
+[50,5] simbolo: =
+[50,7] charConst: 'z'
+[50,10] simbolo: ;
+[52,3] identificador: x
+[52,5] simbolo: =
+[52,7] identificador: x
+[52,9] simbolo: +
+[52,11] numero inteiro: 1
+[52,12] simbolo: ;
+[53,3] identificador: x
+[53,5] simbolo: =
+[53,7] identificador: x
+[53,9] simbolo: -
+[53,11] numero inteiro: 2
+[53,12] simbolo: ;
+[54,3] identificador: x
+[54,5] simbolo: =
+[54,7] identificador: x
+[54,9] simbolo: *
+[54,11] numero inteiro: 3
+[54,12] simbolo: ;
+[55,3] identificador: x
+[55,5] simbolo: =
+[55,7] identificador: x
+[55,9] simbolo: /
+[55,11] numero inteiro: 4
+[55,12] simbolo: ;
+[56,3] identificador: x
+[56,5] simbolo: =
+[56,7] identificador: x
+[56,9] simbolo: %
+[56,11] numero inteiro: 5
+[56,12] simbolo: ;
+[58,3] palavra reservada: if
+[58,6] simbolo: (
+[58,7] identificador: x
+[58,9] simbolo: ==
+[58,12] numero inteiro: 10
+[58,14] simbolo: )
+[58,16] simbolo: {
+[59,5] palavra reservada: print
+[59,10] simbolo: (
+[59,11] identificador: x
+[59,12] simbolo: ,
+[59,14] numero inteiro: 5
+[59,15] simbolo: )
+[59,16] simbolo: ;
+[60,3] simbolo: }
+[60,5] palavra reservada: else
+[60,10] simbolo: {
+[61,5] palavra reservada: print
+[61,10] simbolo: (
+[61,11] identificador: y
+[61,12] simbolo: ,
+[61,14] numero hexadecimal: 0x1A
+[61,18] simbolo: )
+[61,19] simbolo: ;
+[62,3] simbolo: }
+[64,3] palavra reservada: if
+[64,6] simbolo: (
+[64,7] identificador: x
+[64,9] simbolo: !=
+[64,12] numero inteiro: 0
+[64,13] simbolo: )
+[64,15] simbolo: {
+[65,5] identificador: x
+[65,7] simbolo: =
+[65,9] identificador: x
+[65,11] simbolo: +
+[65,13] numero inteiro: 1
+[65,14] simbolo: ;
+[66,3] simbolo: }
+[68,3] palavra reservada: if
+[68,6] simbolo: (
+[68,7] identificador: x
+[68,9] simbolo: >
+[68,11] numero inteiro: 1
+[68,12] simbolo: )
+[68,14] simbolo: {
+[69,5] identificador: x
+[69,7] simbolo: =
+[69,9] identificador: x
+[69,11] simbolo: +
+[69,13] numero inteiro: 1
+[69,14] simbolo: ;
+[70,3] simbolo: }
+[72,3] palavra reservada: if
+[72,6] simbolo: (
+[72,7] identificador: x
+[72,9] simbolo: >=
+[72,12] numero inteiro: 2
+[72,13] simbolo: )
+[72,15] simbolo: {
+[73,5] identificador: x
+[73,7] simbolo: =
+[73,9] identificador: x
+[73,11] simbolo: +
+[73,13] numero inteiro: 1
+[73,14] simbolo: ;
+[74,3] simbolo: }
+[76,3] palavra reservada: if
+[76,6] simbolo: (
+[76,7] identificador: x
+[76,9] simbolo: <
+[76,11] numero inteiro: 20
+[76,13] simbolo: )
+[76,15] simbolo: {
+[77,5] identificador: x
+[77,7] simbolo: =
+[77,9] identificador: x
+[77,11] simbolo: +
+[77,13] numero inteiro: 1
+[77,14] simbolo: ;
+[78,3] simbolo: }
+[80,3] palavra reservada: if
+[80,6] simbolo: (
+[80,7] identificador: x
+[80,9] simbolo: <=
+[80,12] numero inteiro: 30
+[80,14] simbolo: )
+[80,16] simbolo: {
+[81,5] identificador: x
+[81,7] simbolo: =
+[81,9] identificador: x
+[81,11] simbolo: +
+[81,13] numero inteiro: 1
+[81,14] simbolo: ;
+[82,3] simbolo: }
+[84,3] palavra reservada: while
+[84,9] simbolo: (
+[84,10] identificador: x
+[84,12] simbolo: <
+[84,14] numero inteiro: 100
+[84,17] simbolo: )
+[84,19] simbolo: {
+[85,5] identificador: x
+[85,7] simbolo: =
+[85,9] identificador: x
+[85,11] simbolo: +
+[85,13] numero inteiro: 1
+[85,14] simbolo: ;
+[86,3] simbolo: }
+[88,3] palavra reservada: read
+[88,7] simbolo: (
+[88,8] identificador: x
+[88,9] simbolo: )
+[88,10] simbolo: ;
+[89,3] palavra reservada: print
+[89,8] simbolo: (
+[89,9] identificador: c
+[89,10] simbolo: ,
+[89,12] numero inteiro: 1
+[89,13] simbolo: )
+[89,14] simbolo: ;
+[91,3] identificador: x
+[91,5] simbolo: =
+[91,7] identificador: newVetor
+[91,15] simbolo: ;
+[92,3] identificador: vetor
+[92,8] simbolo: [
+[92,9] numero inteiro: 10
+[92,11] simbolo: ]
+[92,13] simbolo: =
+[92,15] identificador: x
+[92,16] simbolo: ;
+[93,3] identificador: obj
+[93,6] simbolo: .
+[93,7] identificador: campo
+[93,13] simbolo: =
+[93,15] identificador: y
+[93,16] simbolo: ;
+[95,3] identificador: intx
+[95,8] simbolo: =
+[95,10] numero inteiro: 99
+[95,12] simbolo: ;
+[96,3] identificador: printx
+[96,10] simbolo: =
+[96,12] numero inteiro: 100
+[96,15] simbolo: ;
+[97,3] identificador: classA
+[97,10] simbolo: =
+[97,12] numero inteiro: 1
+[97,13] simbolo: ;
+[98,3] identificador: floatValue
+[98,14] simbolo: =
+[98,16] numero inteiro: 2
+[98,17] simbolo: ;
+[99,3] identificador: charNome
+[99,12] simbolo: =
+[99,14] charConst: 'B'
+[99,17] simbolo: ;
+[101,3] identificador: hexOk1
+[101,10] simbolo: =
+[101,12] numero hexadecimal: 0xFF
+[101,16] simbolo: ;
+[102,3] identificador: hexOk2
+[102,10] simbolo: =
+[102,12] numero hexadecimal: 0x0A
+[102,16] simbolo: ;
+[103,3] identificador: hexOk3
+[103,10] simbolo: =
+[103,12] numero hexadecimal: 0x1a3f
+[103,18] simbolo: ;
+[105,3] identificador: realOk1
+[105,11] simbolo: =
+[105,13] numero real: 0.0
+[105,16] simbolo: ;
+[106,3] identificador: realOk2
+[106,11] simbolo: =
+[106,13] numero real: 12.5
+[106,17] simbolo: ;
+[107,3] identificador: realOk3
+[107,11] simbolo: =
+[107,13] numero real: 100.0
+[107,18] simbolo: ;
+[109,3] identificador: invalidoHex1
+[109,16] simbolo: =
+[109,18] erro lexico: hexadecimal invalido -> 0XFF
+[109,22] simbolo: ;
+[110,3] identificador: invalidoHex2
+[110,16] simbolo: =
+[110,18] erro lexico: hexadecimal incompleto -> 0x
+[110,20] simbolo: ;
+[111,3] identificador: invalidoReal1
+[111,17] simbolo: =
+[111,19] erro lexico: numero real invalido -> 5.
+[111,21] simbolo: ;
+[112,3] identificador: invalidoReal2
+[112,17] simbolo: =
+[112,19] erro lexico: numero real invalido -> .5
+[112,21] simbolo: ;
+[113,1] simbolo: }

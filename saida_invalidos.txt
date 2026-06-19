@@ -1,0 +1,16 @@
+[1,1] identificador: x
+[1,3] simbolo: =
+[1,5] erro lexico: hexadecimal invalido -> 0XFF
+[1,9] simbolo: ;
+[2,1] identificador: y
+[2,3] simbolo: =
+[2,5] erro lexico: numero real invalido -> 5.
+[2,7] simbolo: ;
+[3,1] identificador: z
+[3,3] simbolo: =
+[3,5] erro lexico: numero real invalido -> .5
+[3,7] simbolo: ;
+[4,1] identificador: w
+[4,3] simbolo: =
+[4,5] erro lexico: hexadecimal incompleto -> 0x
+[4,7] simbolo: ;

@@ -1,0 +1,89 @@
+/* exSlide17.cup - Gramatica da Aula 17 (com IDENT e producao designator) */
+ *
+ * Estende exercicio.cup (Aula 15, Ex3) com:
+ *   - Terminal String IDENT
+ *   - Tokens DOT, COL_ABRE, COL_FECHA
+ *   - Producao designator (variavel, atributo de objeto, elemento de vetor)
+ *   - factor aceita designator alem de INTEIRO e (expr)
+ *
+ * Gramatica:
+ *   designator -> IDENT
+ *              |  designator . IDENT         (obj.attr)
+ *              |  designator [ expr ]        (arr[i])
+ *
+ *   factor -> INTEIRO | ( expr ) | designator
+ *
+ * Obs: quando factor vem de um designator, RESULT = null pois nao
+ *      temos tabela de simbolos para resolver o valor da variavel.
+ *      A expressao e RECONHECIDA sintaticamente; o valor sera null.
+ */
+
+import java_cup.runtime.*;
+
+/* ===== Terminais ===== */
+terminal PTVIRG;
+terminal MAIS, MENOS;
+terminal VEZES, DIVISAO, MOD;
+terminal ABRE, FECHA;        /* parenteses */
+terminal COL_ABRE, COL_FECHA; /* colchetes */
+terminal DOT;                /* ponto - acesso a atributo */
+terminal Double  INTEIRO;
+terminal String  IDENT;
+
+/* ===== Nao terminais ===== */
+non terminal Double expr_list, expr_ptv, expr, term, factor;
+non terminal String designator;
+
+/* ===== Producoes ===== */
+
+expr_list ::= expr_list expr_ptv
+            | expr_ptv
+            ;
+
+expr_ptv ::= expr:e PTVIRG
+             {:
+                 System.out.println("Resultado = " + e);
+             :}
+           ;
+
+/* Adicao e subtracao */
+expr ::= expr:e MAIS term:t
+         {: RESULT = e + t; :}
+       | expr:e MENOS term:t
+         {: RESULT = e - t; :}
+       | term:t
+         {: RESULT = t; :}
+       ;
+
+/* Multiplicacao, divisao, modulo */
+term ::= term:t VEZES factor:f
+         {: RESULT = t * f; :}
+       | term:t DIVISAO factor:f
+         {: RESULT = t / f; :}
+       | term:t MOD factor:f
+         {: RESULT = t % f; :}
+       | factor:f
+         {: RESULT = f; :}
+       ;
+
+/* Fator: numero, subexpressao ou designator */
+factor ::= INTEIRO:n
+           {: RESULT = n; :}
+         | ABRE expr:e FECHA
+           {: RESULT = e; :}
+         | designator:d
+           {:
+               /* Sem tabela de simbolos: imprime o nome e retorna null */
+               System.out.println("  [designator: " + d + "]");
+               RESULT = null;
+           :}
+         ;
+
+/* Designator: variavel simples, acesso a atributo ou elemento de vetor */
+designator ::= IDENT:id
+               {: RESULT = id; :}
+             | designator:d DOT IDENT:id
+               {: RESULT = d + "." + id; :}
+             | designator:d COL_ABRE expr:e COL_FECHA
+               {: RESULT = d + "[" + e + "]"; :}
+             ;

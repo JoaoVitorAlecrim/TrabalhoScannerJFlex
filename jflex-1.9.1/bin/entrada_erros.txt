@@ -1,0 +1,19 @@
+program Teste
+
+{
+  void main()
+    int x;
+  {
+    /* Casos com erro lexico */
+    x = 0XFF;   /* ERRO: hex deve ser 0x (minusculo) */
+    x = 5.;     /* ERRO: real invalido (sem parte decimal) */
+    x = .5;     /* ERRO: real invalido (sem parte inteira) */
+    x = 0x;     /* ERRO: hex incompleto (sem digitos) */
+
+    /* Caso valido apos os erros */
+    x = 42;
+    print(x);
+
+    return;
+  }
+}

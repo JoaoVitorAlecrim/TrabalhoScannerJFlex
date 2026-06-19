@@ -1,0 +1,113 @@
+program ProgramaCompleto
+
+/* =========================================
+   TESTE COMPLETO DO SCANNER
+   Este arquivo cobre:
+   - palavras reservadas
+   - identificadores
+   - inteiros
+   - reais
+   - hexadecimais
+   - charConst
+   - operadores relacionais
+   - operadores aritmeticos
+   - delimitadores
+   - comentario comum
+   - comentario aninhado (erro esperado)
+   - invalidos especificos
+   ========================================= */
+
+final int limite = 10;
+final char letra = 'A';
+final char quebra = '\n';
+final char barra = '\\';
+
+class Pessoa {
+  int idade;
+  float altura;
+  char inicial;
+}
+
+class Vetor {
+  int tamanho;
+}
+
+void metodoTeste() {
+  int x;
+  float y;
+  char c;
+}
+
+/* comentario simples funcionando corretamente */
+
+/* comentario externo
+   /* comentario interno */
+*/
+
+{
+  x = 10;
+  y = 3.14;
+  c = 'z';
+
+  x = x + 1;
+  x = x - 2;
+  x = x * 3;
+  x = x / 4;
+  x = x % 5;
+
+  if (x == 10) {
+    print(x, 5);
+  } else {
+    print(y, 0x1A);
+  }
+
+  if (x != 0) {
+    x = x + 1;
+  }
+
+  if (x > 1) {
+    x = x + 1;
+  }
+
+  if (x >= 2) {
+    x = x + 1;
+  }
+
+  if (x < 20) {
+    x = x + 1;
+  }
+
+  if (x <= 30) {
+    x = x + 1;
+  }
+
+  while (x < 100) {
+    x = x + 1;
+  }
+
+  read(x);
+  print(c, 1);
+
+  x = newVetor;
+  vetor[10] = x;
+  obj.campo = y;
+
+  intx = 99;
+  printx = 100;
+  classA = 1;
+  floatValue = 2;
+  charNome = 'B';
+
+  hexOk1 = 0xFF;
+  hexOk2 = 0x0A;
+  hexOk3 = 0x1a3f;
+
+  realOk1 = 0.0;
+  realOk2 = 12.5;
+  realOk3 = 100.0;
+
+  invalidoHex1 = 0XFF;
+  invalidoHex2 = 0x;
+  invalidoReal1 = 5.;
+  invalidoReal2 = .5;
+}

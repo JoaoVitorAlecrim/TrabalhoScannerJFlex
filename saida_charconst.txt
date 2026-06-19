@@ -1,0 +1,27 @@
+[1,1] palavra reservada: final
+[1,7] palavra reservada: int
+[1,11] identificador: c
+[1,13] simbolo: =
+[1,15] numero inteiro: 10
+[1,17] simbolo: ;
+[2,1] palavra reservada: final
+[2,7] palavra reservada: int
+[2,11] identificador: d
+[2,13] simbolo: =
+[2,15] charConst: 'a'
+[2,18] simbolo: ;
+[3,1] palavra reservada: print
+[3,6] simbolo: (
+[3,7] charConst: 'Z'
+[3,10] simbolo: )
+[3,11] simbolo: ;
+[4,1] palavra reservada: print
+[4,6] simbolo: (
+[4,7] charConst: '\n'
+[4,11] simbolo: )
+[4,12] simbolo: ;
+[5,1] palavra reservada: print
+[5,6] simbolo: (
+[5,7] charConst: '\\'
+[5,11] simbolo: )
+[5,12] simbolo: ;

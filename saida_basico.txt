@@ -1,0 +1,43 @@
+[1,1] palavra reservada: program
+[1,9] identificador: P
+[3,1] palavra reservada: class
+[3,7] identificador: Teste
+[3,13] simbolo: {
+[4,3] palavra reservada: int
+[4,7] identificador: x
+[4,8] simbolo: ;
+[5,3] palavra reservada: float
+[5,9] identificador: y
+[5,10] simbolo: ;
+[6,3] palavra reservada: char
+[6,8] identificador: c
+[6,9] simbolo: ;
+[7,1] simbolo: }
+[9,1] simbolo: {
+[10,3] identificador: x
+[10,5] simbolo: =
+[10,7] numero inteiro: 10
+[10,9] simbolo: ;
+[11,3] identificador: y
+[11,5] simbolo: =
+[11,7] numero real: 3.14
+[11,11] simbolo: ;
+[12,3] identificador: c
+[12,5] simbolo: =
+[12,7] charConst: 'a'
+[12,10] simbolo: ;
+[13,3] palavra reservada: print
+[13,8] simbolo: (
+[13,9] identificador: x
+[13,10] simbolo: ,
+[13,12] numero inteiro: 5
+[13,13] simbolo: )
+[13,14] simbolo: ;
+[14,3] palavra reservada: print
+[14,8] simbolo: (
+[14,9] identificador: y
+[14,10] simbolo: ,
+[14,12] numero hexadecimal: 0x10
+[14,16] simbolo: )
+[14,17] simbolo: ;
+[15,1] simbolo: }

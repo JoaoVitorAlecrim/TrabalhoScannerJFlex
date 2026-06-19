@@ -1,0 +1,49 @@
+program Teste
+
+/* =========================
+   TESTE 1: Declaração de variáveis
+   ========================= */
+class A {
+  int x;
+  float y;
+}
+
+/* =========================
+   TESTE 2: Atribuições
+   ========================= */
+{
+  x = 10;
+  y = 3.14;
+}
+
+/* =========================
+   TESTE 3: Hexadecimal
+   ========================= */
+x = 0xFF;
+
+/* =========================
+   TESTE 4: Casos inválidos
+   ========================= */
+x = 0XFF;   /* inválido */
+y = 5.;     /* inválido */
+y = .5;     /* inválido */
+x = 0x;     /* inválido */
+
+/* =========================
+   TESTE 5: Estruturas de controle
+   ========================= */
+if (x > 0) {
+  x = x + 1;
+} else {
+  x = x - 1;
+}
+
+while (x < 10) {
+  x = x + 1;
+}
+
+/* =========================
+   TESTE 6: Entrada e saída
+   ========================= */
+read(x);
+print(x, 5);
